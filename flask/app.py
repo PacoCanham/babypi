@@ -18,6 +18,11 @@ UD = GPIO.pwm(UDPIN, 50)
 
 app = Flask(__name__)
 
+@app.route("/")
+def index():
+    return f"App Loaded\nLRPIN : {LRPIN}\nUDPIN : {UDPIN}\n UDperc : {UDPerc}\n LRperc : {LRPerc}\n"
+
+
 @app.route("/up")
 def up():
     global UDPerc
@@ -40,11 +45,7 @@ def up():
     UD.ChangeDutyCycle(rawValue)
     time.sleep(0.03)
     UD.stop()
-    return 1
-
-@app.route("/")
-def index():
-    return "App Loaded"
+    return "up"
     
 @app.route("/down")
 def down():
@@ -56,7 +57,7 @@ def down():
     UD.ChangeDutyCycle(rawValue)
     time.sleep(0.03)
     UD.stop()
-    return 1
+    return "down"
 
 @app.route("/left")
 def left():
@@ -68,7 +69,7 @@ def left():
     LR.ChangeDutyCycle(rawValue)
     time.sleep(0.03)
     LR.stop()
-    return 1
+    return "left"
 
 @app.route("/right")
 def right():
@@ -80,4 +81,4 @@ def right():
     LR.ChangeDutyCycle(rawValue)
     time.sleep(0.03)
     LR.stop()
-    return 1
+    return "right"
