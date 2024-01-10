@@ -1,21 +1,39 @@
 from flask import Flask, redirect
 import RPi.GPIO as GPIO
 
-UDPerc = 50
-LRPerc = 50
-#set gpio pin numbering to boad
-GPIO.setmode(GPIO.BOARD)
-#set Left and Right pin number
 LRPIN = 12
 UDPIN = 33
-# set lr pin to output
-GPIO.setup(LRPIN, GPIO.OUT)
-GPIO.setup(UDPIN, GPIO.OUT)
-#set lr pin as pwm
-LR = GPIO.PWM(LRPIN, 50)
-UD = GPIO.PWM(UDPIN, 50)
-LR.start(0)
-UD.start(0)
+UDPerc = 50
+LRPerc = 50
+
+
+def startup():
+    GPIO.setmode(GPIO.BOARD)
+
+def UDStart():
+    print(UDPIN)
+    print(UDPerc)
+    GPIO.setup(UDPIN, GPIO.OUT)
+    UD = GPIO.PWM(UDPIN, 50)
+    UD.start(0)
+
+def UDStop():
+    UD.ChangeDutyCycle(0)
+    UD.stop()
+    GPIO.setup(UDPIN, GPIO.IN)
+
+def LRStop():
+    LR.ChangeDutyCycle(0)
+    LR.stop()
+    GPIO.setup(LRPIN, GPIO.IN)
+
+
+def LRStart():
+    print(LRPIN)
+    print(LRPerc)
+    GPIO.setup(LRPIN, GPIO.OUT)
+    LR = GPIO.PWM(LRPIN, 50)
+    LR.start(0)
 
 app = Flask(__name__)
 
@@ -26,11 +44,11 @@ def index():
 
 @app.route("/up")
 def up():
-    global UDPerc
+    # global UDPerc
     # rawValue = (((5/100)* UDPerc) + 5)
     # rawValue = ((UDPerc/10) + 2)
     # UD.start(rawValue)
-    UDPerc += 5
+    # UDPerc += 5
     # 1 frequency = 20ms
     # (1/20*100) = 0
     # ((rawValue - 2)/(12-2))*100 = UDPerc
@@ -46,46 +64,41 @@ def up():
     # 25% = 6.25   - 1.25
     # 0% = 2       - 0
     # rawValue = (((5/100)* UDPerc) + 5)
+    UDStart()
+    UDPerc += 5
     rawValue = ((UDPerc/10) + 2)
     UD.ChangeDutyCycle(rawValue)
+    UDStop()
     # UD.stop()
     return redirect("/")
     
 @app.route("/down")
 def down():
-    global UDPerc
-    # rawValue = (((5/100)* UDPerc) + 5)
-    # rawValue = ((UDPerc/10) + 2)    
-    # UD.start(rawValue)
+    UDStart()
     UDPerc -= 5
-    # rawValue = (((5/100)* UDPerc) + 5)
-    rawValue = ((UDPerc/10) + 2)    
+    rawValue = ((UDPerc/10) + 2)
     UD.ChangeDutyCycle(rawValue)
-    # UD.stop()
+    UDStop()
     return redirect("/")
 
 @app.route("/left")
 def left():
-    global LRPerc
-    # rawValue = (((5/100)* UDPerc) + 5)
-    # rawValue = ((UDPerc/10) + 2)    
-    # LR.start(rawValue)
+    LRStart()
     LRPerc -= 5
-    # rawValue = (((5/100)* UDPerc) + 5)
-    rawValue = ((UDPerc/10) + 2)    
+    rawValue = ((LRPerc/10) + 2)
     LR.ChangeDutyCycle(rawValue)
-    # LR.stop()
+    LRStop()
     return redirect("/")
 
 @app.route("/right")
 def right():
-    global LRPerc
-    # rawValue = (((5/100)* UDPerc) + 5)
-    # rawValue = ((UDPerc/10) + 2)
-    # LR.start(rawValue)
+    LRStart()
     LRPerc += 5
-    # rawValue = (((5/100)* UDPerc) + 5)
-    rawValue = ((UDPerc/10) + 2)
+    rawValue = ((LRPerc/10) + 2)
     LR.ChangeDutyCycle(rawValue)
-    # LR.stop()
+    LRStop()
     return redirect("/")
+
+if __name__ == '__main__':
+    startup()
+    app.run(host='0.0.0.0', port=5000, debug=False)
