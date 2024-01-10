@@ -13,8 +13,8 @@ UDPIN = 33
 GPIO.setup(LRPIN, GPIO.OUT)
 GPIO.setup(UDPIN, GPIO.OUT)
 #set lr pin as pwm
-LR = GPIO.pwm(LRPIN, 50)
-UD = GPIO.pwm(UDPIN, 50)
+LR = GPIO.PWM(LRPIN, 50)
+UD = GPIO.PWM(UDPIN, 50)
 
 app = Flask(__name__)
 
