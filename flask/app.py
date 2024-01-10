@@ -2,7 +2,7 @@
 
 from flask import Flask, redirect
 import RPi.GPIO as GPIO
-from time import sleep
+import time
 
 LRPIN = 12
 UDPIN = 33
