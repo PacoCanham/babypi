@@ -14,19 +14,20 @@ GPIO.setup(UDPIN, GPIO.OUT)
 #set lr pin as pwm
 LR = GPIO.PWM(LRPIN, 50)
 UD = GPIO.PWM(UDPIN, 50)
+UD.start(7.5)
 
 app = Flask(__name__)
 
 @app.route("/")
 def index():
-    return f"App Loaded\r\nLRPIN : {LRPIN}\r\nUDPIN : {UDPIN}\n UDperc : {UDPerc}\r\n LRperc : {LRPerc}\r\n"
+    return f"App Loaded<hr>LRPIN : {LRPIN}<br>UDPIN : {UDPIN}<br>UDperc : {UDPerc}<br>LRperc : {LRPerc}<hr>"
 
 
 @app.route("/up")
 def up():
     global UDPerc
     rawValue = (((5/100)* UDPerc) + 5)
-    UD.start(rawValue)
+    # UD.start(rawValue)
     UDPerc += 5
     # 1 frequency = 20ms
     # (1/20*100) = 0
@@ -42,7 +43,7 @@ def up():
     # 0% = 5       - 0
     rawValue = (((5/100)* UDPerc) + 5)
     UD.ChangeDutyCycle(rawValue)
-    UD.stop()
+    # UD.stop()
     return redirect("/")
     
 @app.route("/down")
@@ -61,7 +62,7 @@ def left():
     global LRPerc
     rawValue = (((5/100)* LRPerc) + 5)
     LR.start(rawValue)
-    LRPerc += 5
+    LRPerc -= 5
     rawValue = (((5/100)* LRPerc) + 5)
     LR.ChangeDutyCycle(rawValue)
     LR.stop()
@@ -72,7 +73,7 @@ def right():
     global LRPerc
     rawValue = (((5/100)* LRPerc) + 5)
     LR.start(rawValue)
-    LRPerc -= 5
+    LRPerc += 5
     rawValue = (((5/100)* LRPerc) + 5)
     LR.ChangeDutyCycle(rawValue)
     LR.stop()
