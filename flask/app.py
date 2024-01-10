@@ -2,7 +2,7 @@
 
 from flask import Flask, redirect
 import RPi.GPIO as GPIO
-import time
+from time import sleep
 
 LRPIN = 12
 UDPIN = 33
@@ -28,7 +28,7 @@ def up():
     UDPerc += 5
     rawValue = ((UDPerc/10) + 2)
     UD.start(rawValue)
-    time.sleep(0.05)
+    sleep(0.05)
     UD.ChangeDutyCycle(0)
     return redirect("/")
     
