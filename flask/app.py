@@ -6,7 +6,7 @@ from time import sleep
 
 LRPIN = 12
 UDPIN = 33
-UDPerc = 50
+UDValue = 0
 LRPerc = 50
 
 GPIO.setmode(GPIO.BOARD)
@@ -15,6 +15,7 @@ GPIO.setup(UDPIN, GPIO.OUT)
 GPIO.setup(LRPIN, GPIO.OUT)
 UD = GPIO.PWM(UDPIN, 50)
 LR = GPIO.PWM(LRPIN, 50)
+
 
 
 app = Flask(__name__)
@@ -26,12 +27,12 @@ def index():
 
 @app.route("/up")
 def up():
-    global UDPerc
-    UDPerc += 5
-    rawValue = ((UDPerc/9) + 2)
-    UD.start(rawValue)
+    global UDValue
+    if UDValue < 12.5 :
+        UDValue += 0.1
+    UD.start(UDValue)
     sleep(0.05)
-    UD.ChangeDutyCycle(0)
+    UD.ChangeDutyCycle(0) #to stop random jitters
     return redirect("/")
     
 @app.route("/down")
