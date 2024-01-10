@@ -7,7 +7,7 @@ from time import sleep
 LRPIN = 12
 UDPIN = 33
 UDValue = 7.5
-LRPerc = 50
+LRPerc = 7.5
 
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
@@ -28,21 +28,23 @@ def index():
 @app.route("/up")
 def up():
     global UDValue
-    # if UDValue < 12 :
-    UDValue -= 0.5
+    if UDValue > 3.0 :
+        UDValue -= 0.5
     UD.start(UDValue)
     sleep(0.05)
+    UD.ChangeDutyCycle(UDValue) #to ensure movement
     UD.ChangeDutyCycle(0) #to stop random jitters
     return redirect("/")
     
 @app.route("/down")
 def down():
     global UDValue
-    # if UDValue > 2.5 :
-    UDValue += 0.5
+    if UDValue < 12.5 :
+        UDValue += 0.5
     print(UDValue)
     UD.start(UDValue)
     sleep(0.05)
+    UD.ChangeDutyCycle(UDValue) #to ensure movement
     UD.ChangeDutyCycle(0) #to stop random jitters
     return redirect("/")
 
@@ -53,6 +55,7 @@ def left():
     rawValue = ((LRPerc/9) + 2)
     LR.start(rawValue)
     sleep(0.05)
+    LR.ChangeDutyCycle(rawValue)
     LR.ChangeDutyCycle(0)
     return redirect("/")
 
@@ -63,6 +66,7 @@ def right():
     rawValue = ((LRPerc/9) + 2)
     LR.start(rawValue)
     sleep(0.05)
+    LR.ChangeDutyCycle(rawValue)
     LR.ChangeDutyCycle(0)
     return redirect("/")
 
