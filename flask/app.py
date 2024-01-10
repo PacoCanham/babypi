@@ -31,44 +31,52 @@ def index():
 @app.route("/up")
 def up():
     global UDValue
+    UD.ChangeDutyCycle(UDValue) #to ensure movement
+    sleep(0.1)
     if UDValue > 3.0 :
         UDValue -= 0.25
     print(UDValue)
     UD.ChangeDutyCycle(UDValue) #to ensure movement
-    sleep(0.05)
+    sleep(0.5)
     UD.ChangeDutyCycle(0) #to stop random jitters
     return redirect("/")
     
 @app.route("/down")
 def down():
     global UDValue
+    UD.ChangeDutyCycle(UDValue) #to ensure movement
+    sleep(0.1)
     if UDValue < 12.5 :
         UDValue += 0.25
     print(UDValue)
-    sleep(0.05)
     UD.ChangeDutyCycle(UDValue) #to ensure movement
+    sleep(0.5)
     UD.ChangeDutyCycle(0) #to stop random jitters
     return redirect("/")
 
 @app.route("/left")
 def left():
     global LRValue
+    LR.ChangeDutyCycle(LRValue) #to ensure movement
+    sleep(0.1)
     if LRValue > 3.0 :
         LRValue -= 0.25
     print(LRValue)
-    sleep(0.05)
     LR.ChangeDutyCycle(LRValue) #to ensure movement
+    sleep(0.5)
     LR.ChangeDutyCycle(0) #to stop random jitters
     return redirect("/")
 
 @app.route("/right")
 def right():
     global LRValue
+    LR.ChangeDutyCycle(LRValue) #to ensure movement
+    sleep(0.1)
     if LRValue < 12.5 :
         LRValue += 0.25
     print(LRValue)
-    sleep(0.05)
     LR.ChangeDutyCycle(LRValue) #to ensure movement
+    sleep(0.5)
     LR.ChangeDutyCycle(0) #to stop random jitters
     return redirect("/")
 
