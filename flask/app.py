@@ -72,7 +72,7 @@ def up():
     UD = UDStart()
     UDPerc += 5
     rawValue = ((UDPerc/10) + 2)
-    UD.ChangeDutyCycle(rawValue)
+    UD.ChangeDutyCycle(int(rawValue))
     UDStop(UD)
     # UD.stop()
     return redirect("/")
