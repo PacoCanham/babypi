@@ -94,16 +94,17 @@ def left():
     rawValue = ((LRPerc/10) + 2)
     print(f"rawValue : {rawValue}")
     LR.ChangeDutyCycle(rawValue)
-    LRStop()
+    LRStop(LR)
     return redirect("/")
 
 @app.route("/right")
 def right():
-    LRStart()
+    global LRPerc
+    LR = LRStart()
     LRPerc += 5
     rawValue = ((LRPerc/10) + 2)
     LR.ChangeDutyCycle(rawValue)
-    LRStop()
+    LRStop(LR)
     return redirect("/")
 
 if __name__ == '__main__':
