@@ -29,7 +29,8 @@ def index():
 def up():
     global UDValue
     if UDValue > 3.0 :
-        UDValue -= 0.5
+        UDValue -= 0.25
+    print(UDValue)
     UD.start(UDValue)
     sleep(0.05)
     UD.ChangeDutyCycle(UDValue) #to ensure movement
@@ -40,34 +41,36 @@ def up():
 def down():
     global UDValue
     if UDValue < 12.5 :
-        UDValue += 0.5
+        UDValue += 0.25
     print(UDValue)
     UD.start(UDValue)
-    sleep(0.05)
+    # sleep(0.05)
     UD.ChangeDutyCycle(UDValue) #to ensure movement
     UD.ChangeDutyCycle(0) #to stop random jitters
     return redirect("/")
 
 @app.route("/left")
 def left():
-    global LRPerc
-    LRPerc -= 5
-    rawValue = ((LRPerc/9) + 2)
-    LR.start(rawValue)
-    sleep(0.05)
-    LR.ChangeDutyCycle(rawValue)
-    LR.ChangeDutyCycle(0)
+    global LRValue
+    if LRValue > 3.0 :
+        LRValue -= 0.25
+    print(LRValue)
+    UD.start(LRValue)
+    # sleep(0.05)
+    UD.ChangeDutyCycle(LRValue) #to ensure movement
+    UD.ChangeDutyCycle(0) #to stop random jitters
     return redirect("/")
 
 @app.route("/right")
 def right():
-    global LRPerc
-    LRPerc += 5
-    rawValue = ((LRPerc/9) + 2)
-    LR.start(rawValue)
-    sleep(0.05)
-    LR.ChangeDutyCycle(rawValue)
-    LR.ChangeDutyCycle(0)
+    global LRValue
+    if LRValue < 12.5 :
+        LRValue += 0.25
+    print(LRValue)
+    UD.start(LRValue)
+    # sleep(0.05)
+    UD.ChangeDutyCycle(LRValue) #to ensure movement
+    UD.ChangeDutyCycle(0) #to stop random jitters
     return redirect("/")
 
 if __name__ == '__main__':
