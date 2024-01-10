@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, redirect
 import RPi.GPIO as GPIO
 
 UDPerc = 50
@@ -19,7 +19,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    return f"App Loaded\nLRPIN : {LRPIN}\nUDPIN : {UDPIN}\n UDperc : {UDPerc}\n LRperc : {LRPerc}\n"
+    return f"App Loaded\r\nLRPIN : {LRPIN}\r\nUDPIN : {UDPIN}\n UDperc : {UDPerc}\r\n LRperc : {LRPerc}\r\n"
 
 
 @app.route("/up")
@@ -43,7 +43,7 @@ def up():
     rawValue = (((5/100)* UDPerc) + 5)
     UD.ChangeDutyCycle(rawValue)
     UD.stop()
-    return "up"
+    return redirect("/")
     
 @app.route("/down")
 def down():
@@ -54,7 +54,7 @@ def down():
     rawValue = (((5/100)* UDPerc) + 5)
     UD.ChangeDutyCycle(rawValue)
     UD.stop()
-    return "down"
+    return redirect("/")
 
 @app.route("/left")
 def left():
@@ -65,7 +65,7 @@ def left():
     rawValue = (((5/100)* LRPerc) + 5)
     LR.ChangeDutyCycle(rawValue)
     LR.stop()
-    return "left"
+    return redirect("/")
 
 @app.route("/right")
 def right():
@@ -76,4 +76,4 @@ def right():
     rawValue = (((5/100)* LRPerc) + 5)
     LR.ChangeDutyCycle(rawValue)
     LR.stop()
-    return "right"
+    return redirect("/")
