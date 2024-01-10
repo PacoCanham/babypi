@@ -6,7 +6,7 @@ from time import sleep
 
 LRPIN = 12
 UDPIN = 33
-UDValue = 0
+UDValue = 7.5
 LRPerc = 50
 
 GPIO.setmode(GPIO.BOARD)
@@ -29,7 +29,7 @@ def index():
 def up():
     global UDValue
     if UDValue < 12.5 :
-        UDValue += 0.1
+        UDValue += 0.5
     UD.start(UDValue)
     sleep(0.05)
     UD.ChangeDutyCycle(0) #to stop random jitters
@@ -39,7 +39,7 @@ def up():
 def down():
     global UDValue
     if UDValue > 2.0 :
-        UDValue -= 0.1
+        UDValue -= 0.5
     UD.start(UDValue)
     sleep(0.05)
     UD.ChangeDutyCycle(0) #to stop random jitters
