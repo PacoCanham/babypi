@@ -28,8 +28,8 @@ def index():
 @app.route("/up")
 def up():
     global UDValue
-    if UDValue < 12 :
-        UDValue += 0.5
+    # if UDValue < 12 :
+    UDValue -= 0.5
     UD.start(UDValue)
     sleep(0.05)
     UD.ChangeDutyCycle(0) #to stop random jitters
@@ -38,8 +38,8 @@ def up():
 @app.route("/down")
 def down():
     global UDValue
-    if UDValue > 2.5 :
-        UDValue -= 0.5
+    # if UDValue > 2.5 :
+    UDValue += 0.5
     print(UDValue)
     UD.start(UDValue)
     sleep(0.05)
