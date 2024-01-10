@@ -37,12 +37,12 @@ def up():
     
 @app.route("/down")
 def down():
-    global UDPerc
-    UDPerc -= 5
-    rawValue = ((UDPerc/9) + 2)
-    UD.start(rawValue)
+    global UDValue
+    if UDValue > 2.0 :
+        UDValue -= 0.1
+    UD.start(UDValue)
     sleep(0.05)
-    UD.ChangeDutyCycle(0)
+    UD.ChangeDutyCycle(0) #to stop random jitters
     return redirect("/")
 
 @app.route("/left")
