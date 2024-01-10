@@ -13,7 +13,7 @@ def startup():
     GPIO.setmode(GPIO.BOARD)
     GPIO.setwarnings(False)
 
-def UDStart(UDPerc):
+def UDStart():
     print(UDPIN)
     print(UDPerc)
     GPIO.setup(UDPIN, GPIO.OUT)
@@ -31,13 +31,13 @@ def LRStop(LR):
     LR.stop()
     GPIO.setup(LRPIN, GPIO.IN)
 
-
 def LRStart():
     print(LRPIN)
     print(LRPerc)
     GPIO.setup(LRPIN, GPIO.OUT)
     LR = GPIO.PWM(LRPIN, 50)
     LR.start(0)
+    return LR
 
 app = Flask(__name__)
 
@@ -88,9 +88,11 @@ def down():
 
 @app.route("/left")
 def left():
-    LRStart()
+    global LRPerc
+    LR = LRStart()
     LRPerc -= 5
     rawValue = ((LRPerc/10) + 2)
+    print(f"rawValue : {rawValue}")
     LR.ChangeDutyCycle(rawValue)
     LRStop()
     return redirect("/")
