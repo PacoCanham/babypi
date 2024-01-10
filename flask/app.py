@@ -16,13 +16,14 @@ def UDStart():
     GPIO.setup(UDPIN, GPIO.OUT)
     UD = GPIO.PWM(UDPIN, 50)
     UD.start(0)
+    return UD
 
-def UDStop():
+def UDStop(UD):
     UD.ChangeDutyCycle(0)
     UD.stop()
     GPIO.setup(UDPIN, GPIO.IN)
 
-def LRStop():
+def LRStop(LR):
     LR.ChangeDutyCycle(0)
     LR.stop()
     GPIO.setup(LRPIN, GPIO.IN)
@@ -64,11 +65,11 @@ def up():
     # 25% = 6.25   - 1.25
     # 0% = 2       - 0
     # rawValue = (((5/100)* UDPerc) + 5)
-    UDStart()
+    UD = UDStart()
     UDPerc += 5
     rawValue = ((UDPerc/10) + 2)
     UD.ChangeDutyCycle(rawValue)
-    UDStop()
+    UDStop(UD)
     # UD.stop()
     return redirect("/")
     
