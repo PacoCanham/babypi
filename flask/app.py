@@ -57,8 +57,8 @@ def left():
         LRValue -= 0.25
     print(LRValue)
     sleep(0.05)
-    UD.ChangeDutyCycle(LRValue) #to ensure movement
-    UD.ChangeDutyCycle(0) #to stop random jitters
+    LR.ChangeDutyCycle(LRValue) #to ensure movement
+    LR.ChangeDutyCycle(0) #to stop random jitters
     return redirect("/")
 
 @app.route("/right")
@@ -68,8 +68,8 @@ def right():
         LRValue += 0.25
     print(LRValue)
     sleep(0.05)
-    UD.ChangeDutyCycle(LRValue) #to ensure movement
-    UD.ChangeDutyCycle(0) #to stop random jitters
+    LR.ChangeDutyCycle(LRValue) #to ensure movement
+    LR.ChangeDutyCycle(0) #to stop random jitters
     return redirect("/")
 
 if __name__ == '__main__':
