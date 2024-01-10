@@ -69,7 +69,7 @@ def up():
     # 0% = 2       - 0
     # rawValue = (((5/100)* UDPerc) + 5)
     global UDPerc
-    UD = UDStart(UDPerc)
+    UD = UDStart()
     UDPerc += 5
     rawValue = ((UDPerc/10) + 2)
     UD.ChangeDutyCycle(rawValue)
@@ -79,6 +79,7 @@ def up():
     
 @app.route("/down")
 def down():
+    global UDPerc
     UDStart()
     UDPerc -= 5
     rawValue = ((UDPerc/10) + 2)
