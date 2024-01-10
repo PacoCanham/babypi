@@ -29,7 +29,6 @@ def up():
     # UDPerc += 5
     # rawValue = ((UDPerc/10) + 2)
     UD.ChangeDutyCycle(12)
-    UD.stop()
     return redirect("/")
     
 @app.route("/down")
