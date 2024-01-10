@@ -11,8 +11,9 @@ LRPerc = 50
 
 def startup():
     GPIO.setmode(GPIO.BOARD)
+    GPIO.setwarnings(False)
 
-def UDStart():
+def UDStart(UDPerc):
     print(UDPIN)
     print(UDPerc)
     GPIO.setup(UDPIN, GPIO.OUT)
@@ -67,7 +68,8 @@ def up():
     # 25% = 6.25   - 1.25
     # 0% = 2       - 0
     # rawValue = (((5/100)* UDPerc) + 5)
-    UD = UDStart()
+    global UDPerc
+    UD = UDStart(UDPerc)
     UDPerc += 5
     rawValue = ((UDPerc/10) + 2)
     UD.ChangeDutyCycle(rawValue)
