@@ -1,6 +1,5 @@
 from flask import Flask
 import RPi.GPIO as GPIO
-from time import sleep
 
 UDPerc = 50
 LRPerc = 50
@@ -43,7 +42,6 @@ def up():
     # 0% = 5       - 0
     rawValue = (((5/100)* UDPerc) + 5)
     UD.ChangeDutyCycle(rawValue)
-    time.sleep(0.03)
     UD.stop()
     return "up"
     
@@ -55,7 +53,6 @@ def down():
     UDPerc -= 5
     rawValue = (((5/100)* UDPerc) + 5)
     UD.ChangeDutyCycle(rawValue)
-    time.sleep(0.03)
     UD.stop()
     return "down"
 
@@ -67,7 +64,6 @@ def left():
     LRPerc += 5
     rawValue = (((5/100)* LRPerc) + 5)
     LR.ChangeDutyCycle(rawValue)
-    time.sleep(0.03)
     LR.stop()
     return "left"
 
@@ -79,6 +75,5 @@ def right():
     LRPerc -= 5
     rawValue = (((5/100)* LRPerc) + 5)
     LR.ChangeDutyCycle(rawValue)
-    time.sleep(0.03)
     LR.stop()
     return "right"
