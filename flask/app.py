@@ -12,7 +12,6 @@ GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
 GPIO.setup(UDPIN, GPIO.OUT)
 UD = GPIO.PWM(UDPIN, 50)
-UD.start(7.5)
 
 
 app = Flask(__name__)
@@ -24,11 +23,12 @@ def index():
 
 @app.route("/up")
 def up():
-    # global UDPerc
-    UD.start(0)
-    # UDPerc += 5
-    # rawValue = ((UDPerc/10) + 2)
-    UD.ChangeDutyCycle(12)
+    global UDPerc
+    UDPerc += 5
+    rawValue = ((UDPerc/10) + 2)
+    UD.start(rawValue)
+    UD.ChangeDutyCycle(0)
+    UD.stop(0)
     return redirect("/")
     
 @app.route("/down")
