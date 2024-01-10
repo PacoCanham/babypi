@@ -42,6 +42,10 @@ def up():
     UD.stop()
     return 1
 
+@app.route("/")
+def index():
+    return "App Loaded"
+    
 @app.route("/down")
 def down():
     global UDPerc
