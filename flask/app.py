@@ -16,6 +16,7 @@ GPIO.setup(LRPIN, GPIO.OUT)
 UD = GPIO.PWM(UDPIN, 50)
 LR = GPIO.PWM(LRPIN, 50)
 UD.start(UDValue)
+LR.start(LRValue)
 
 
 
@@ -33,7 +34,6 @@ def up():
     if UDValue > 3.0 :
         UDValue -= 0.25
     print(UDValue)
-    # UD.start(UDValue)
     UD.ChangeDutyCycle(UDValue) #to ensure movement
     sleep(0.05)
     UD.ChangeDutyCycle(0) #to stop random jitters
@@ -45,7 +45,7 @@ def down():
     if UDValue < 12.5 :
         UDValue += 0.25
     print(UDValue)
-    # sleep(0.05)
+    sleep(0.05)
     UD.ChangeDutyCycle(UDValue) #to ensure movement
     UD.ChangeDutyCycle(0) #to stop random jitters
     return redirect("/")
@@ -56,7 +56,6 @@ def left():
     if LRValue > 3.0 :
         LRValue -= 0.25
     print(LRValue)
-    UD.start(LRValue)
     sleep(0.05)
     UD.ChangeDutyCycle(LRValue) #to ensure movement
     UD.ChangeDutyCycle(0) #to stop random jitters
@@ -68,7 +67,6 @@ def right():
     if LRValue < 12.5 :
         LRValue += 0.25
     print(LRValue)
-    UD.start(LRValue)
     sleep(0.05)
     UD.ChangeDutyCycle(LRValue) #to ensure movement
     UD.ChangeDutyCycle(0) #to stop random jitters
