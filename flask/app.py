@@ -22,13 +22,13 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    return f"App Loaded<hr>LRPIN : {LRPIN}<br>UDPIN : {UDPIN}<br>UDperc : {UDPerc}<br>LRperc : {LRPerc}<hr>"
+    return f"App Loaded<hr>LRPIN : {LRPIN}<br>UDPIN : {UDPIN}<br>UDValue : {UDValue}<br>LRperc : {LRPerc}<hr>"
 
 
 @app.route("/up")
 def up():
     global UDValue
-    if UDValue < 12.5 :
+    if UDValue < 12 :
         UDValue += 0.5
     UD.start(UDValue)
     sleep(0.05)
@@ -38,8 +38,9 @@ def up():
 @app.route("/down")
 def down():
     global UDValue
-    if UDValue > 2.0 :
+    if UDValue > 2.5 :
         UDValue -= 0.5
+    print(UDValue)
     UD.start(UDValue)
     sleep(0.05)
     UD.ChangeDutyCycle(0) #to stop random jitters
