@@ -8,23 +8,10 @@ UDPIN = 33
 UDPerc = 50
 LRPerc = 50
 
-
-def startup():
-    GPIO.setmode(GPIO.BOARD)
-    GPIO.setwarnings(False)
-
-def UDStart():
-    print(UDPIN)
-    print(UDPerc)
-    GPIO.setup(UDPIN, GPIO.OUT)
-    UD = GPIO.PWM(UDPIN, 50)
-    UD.start(0)
-    return UD
-
-def UDStop(UD):
-    UD.ChangeDutyCycle(0)
-    UD.stop()
-    GPIO.setup(UDPIN, GPIO.IN)
+GPIO.setmode(GPIO.BOARD)
+GPIO.setwarnings(False)
+GPIO.setup(UDPIN, GPIO.OUT)
+UD = GPIO.PWM(UDPIN, 50)
 
 def LRStop(LR):
     LR.ChangeDutyCycle(0)
@@ -69,12 +56,11 @@ def up():
     # 0% = 2       - 0
     # rawValue = (((5/100)* UDPerc) + 5)
     global UDPerc
-    UD = UDStart()
+    UD.start(0)
     UDPerc += 5
     rawValue = ((UDPerc/10) + 2)
-    UD.ChangeDutyCycle(int(rawValue))
-    UDStop(UD)
-    # UD.stop()
+    UD.ChangeDutyCycle(rawValue)
+    UD.stop()
     return redirect("/")
     
 @app.route("/down")
