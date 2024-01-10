@@ -25,7 +25,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    return f"App Loaded<hr>LRPIN : {LRPIN}<br>UDPIN : {UDPIN}<br>UDValue : {UDValue}<br>LRperc : {LRPerc}<hr>"
+    return f"App Loaded<hr>LRPIN : {LRPIN}<br>UDPIN : {UDPIN}<br>UDValue : {UDValue}<br>LRValue : {LRValue}<hr>"
 
 
 @app.route("/up")
