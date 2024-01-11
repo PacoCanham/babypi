@@ -52,8 +52,8 @@ def down():
     UD.ChangeDutyCycle(0) #to stop random jitters
     return redirect("/")
 
-@app.route("/left")
-def left():
+@app.route("/right")
+def right():
     global LRValue
     LR.ChangeDutyCycle(LRValue) #to ensure movement
     sleep(0.1)
@@ -64,8 +64,8 @@ def left():
     LR.ChangeDutyCycle(0) #to stop random jitters
     return redirect("/")
 
-@app.route("/right")
-def right():
+@app.route("/left")
+def left():
     global LRValue
     LR.ChangeDutyCycle(LRValue) #to ensure movement
     sleep(0.1)

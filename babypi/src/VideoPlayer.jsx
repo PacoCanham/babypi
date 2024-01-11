@@ -13,9 +13,9 @@ export default function VideoPlayer(){
 
     return (
     <>
-    <ReactPlayer url='https://www.youtube.com/watch?v=LXb3EKWsInQ' volume={(videoVolume/100)} playing controls width={"75vw"}/>
     <Box sx={{width: "50%",textAlign:"center", margin:"auto", padding:1}}>
-        <Typography gutterBottom>
+    <img src={"http://babycam.local:8000/stream.mjpg"} width={"100%"}/>   
+     <Typography gutterBottom>
             Volume
         </Typography>
     <Stack spacing={2} direction="row" alignItems={"center"}>
