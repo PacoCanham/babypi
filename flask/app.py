@@ -3,6 +3,8 @@
 from flask import Flask, redirect
 import RPi.GPIO as GPIO
 from time import sleep
+import os
+import subprocess
 
 LRPIN = 12
 UDPIN = 33
@@ -18,14 +20,14 @@ LR = GPIO.PWM(LRPIN, 50)
 UD.start(0)
 LR.start(0)
 
-
+flipped = False
 
 
 app = Flask(__name__)
 
 @app.route("/")
 def index():
-    return f"App Loaded<hr>LRPIN : {LRPIN}<br>UDPIN : {UDPIN}<br>UDValue : {UDValue}<br>LRValue : {LRValue}<hr>"
+    return f"App Loaded<hr>LRPIN : {LRPIN}<br>UDPIN : {UDPIN}<br>UDValue : {UDValue}<br>LRValue : {LRValue}<br>Flipped : {flipped}<hr>"
 
 
 @app.route("/up")
@@ -76,5 +78,19 @@ def left():
     LR.ChangeDutyCycle(0) #to stop random jitters
     return redirect("/")
 
+@app.route("/flip")
+def flip():
+	global flipped
+	if not flipped:
+		os.system('killall mjpeg*')
+		os.system('./mjpeg2.py vflip &')
+		flipped = True
+	else:
+		os.system('killall mjpeg*')
+		os.system('./mjpeg2.py &')
+		flipped = False
+	return redirect("/")
+
 if __name__ == '__main__':
+    os.system('./mjpeg2.py &')
     app.run(host='0.0.0.0', port=5000, debug=False)

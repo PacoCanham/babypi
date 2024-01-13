@@ -5,11 +5,11 @@ import './App.css'
 
 export default function App(){
 	return (
-		<>
+		<div style={{margin:"auto", padding:"1"}}>
 			<VideoPlayer/>
 			<hr/>
 			<Buttons/>
-		</>
+		</div>
 
 	);
 }

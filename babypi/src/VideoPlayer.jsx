@@ -13,11 +13,11 @@ export default function VideoPlayer(){
 
     return (
     <>
-    <Box sx={{width: "50%",textAlign:"center", margin:"auto", padding:1}}>
-    <img src={"http://babycam.local:8000/stream.mjpg"} width={"100%"}/>   
+    <Box sx={{width: "95%",textAlign:"center", margin:"auto", padding:2}}>
+    <img src={"http://192.168.4.50:8000/stream.mjpg"} width={"75%"}style={{border:"2px solid black", margin:"auto", padding:"0"}}/>   
      <Typography gutterBottom>
             Volume
-        </Typography>
+     </Typography>
     <Stack spacing={2} direction="row" alignItems={"center"}>
             <VolumeDown />
                 <Slider
@@ -29,7 +29,7 @@ export default function VideoPlayer(){
                     marks
                     min={0}
                     max={100}
-                    sx={{width:"30vw"}}
+                    sx={{width:"40vw", margin:"auto"}}
                 />
             <VolumeUp />
     </Stack>
