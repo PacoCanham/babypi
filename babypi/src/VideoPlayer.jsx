@@ -14,7 +14,7 @@ export default function VideoPlayer(){
     return (
     <>
     <Box sx={{width: "95%",textAlign:"center", margin:"auto", padding:2}}>
-    <img src={"http://192.168.4.50:8000/stream.mjpg"} width={"75%"}style={{border:"2px solid black", margin:"auto", padding:"0"}}/>   
+    <img src={"http://localhost:8000/stream.mjpg"} width={"75%"}style={{border:"2px solid black", margin:"auto", padding:"0"}}/>   
      <Typography gutterBottom>
             Volume
      </Typography>

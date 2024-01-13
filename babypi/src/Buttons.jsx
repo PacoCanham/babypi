@@ -6,7 +6,7 @@ import { KeyboardArrowLeftSharp, KeyboardArrowRightSharp, KeyboardArrowUpSharp, 
 export default function Buttons() {
     function handleClick(e) {
         e.preventDefault();
-        let url = "http://192.168.4.50:5000/" + (e.currentTarget.id);
+        let url = "http://localhost:5000/" + (e.currentTarget.id);
         async function moveCamera() {
             // sends a get request to /settings
             const response = await fetch(url);
