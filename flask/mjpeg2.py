@@ -44,18 +44,18 @@ class StreamingOutput(io.BufferedIOBase):
 
 class StreamingHandler(server.BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path == '/':
-            self.send_response(301)
-            self.send_header('Location', '/index.html')
-            self.end_headers()
-        elif self.path == '/index.html':
-            content = PAGE.encode('utf-8')
-            self.send_response(200)
-            self.send_header('Content-Type', 'text/html')
-            self.send_header('Content-Length', len(content))
-            self.end_headers()
-            self.wfile.write(content)
-        elif self.path == '/stream.mjpg':
+        #if self.path == '/':
+         #   self.send_response(301)
+        #    self.send_header('Location', '/index.html')
+       #     self.end_headers()
+      #  elif self.path == '/index.html':
+     #       content = PAGE.encode('utf-8')
+    #        self.send_response(200)
+   #         self.send_header('Content-Type', 'text/html')
+  #          self.send_header('Content-Length', len(content))
+ #           self.end_headers()
+#            self.wfile.write(content)
+        if self.path == '/stream.mjpg':
             self.send_response(200)
             self.send_header('Age', 0)
             self.send_header('Cache-Control', 'no-cache, private')
@@ -74,9 +74,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                     self.wfile.write(frame)
                     self.wfile.write(b'\r\n')
             except Exception as e:
-                logging.warning(
-                    'Removed streaming client %s: %s',
-                    self.client_address, str(e))
+                    logging.warning('Removed streaming client %s: %s',self.client_address, str(e))
         else:
             self.send_error(404)
             self.end_headers()

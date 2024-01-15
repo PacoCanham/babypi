@@ -13,7 +13,7 @@ export default function CameraButtons() {
         }
         moveCamera();
        if (e.currentTarget.id == 'flip'){
-            setTimeout(()=>{location.reload()}, 1000);
+            setTimeout(()=>{location.reload()}, 3000);
         }
     }
 
