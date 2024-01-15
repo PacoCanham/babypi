@@ -80,29 +80,31 @@ def left():
 
 @app.route("/flip")
 def flip():
-    (UDValue, LRValue, flipped) = loadconfig()
+    (UDValue,LRValue,flipped) = loadconfig()
+    print(flipped)
     if not flipped:
+        print(f"in if not : {flipped}")
         os.system('killall mjpeg*')
         os.system('./mjpeg2.py vflip &')
         flipped = True
+        print(f"after change {flipped}")
     else:
+        print(f"in else : {flipped}")
         os.system('killall mjpeg*')
         os.system('./mjpeg2.py &')
         flipped = False
+        print(f"after change {flipped}")
+    print(f"
     saveconfig(UDValue,LRValue,flipped)
     return redirect("/")
 
 def loadconfig():
-    try:
-        with open ("config.json", "r") as config:
-            values = json.load(config)
-            UDValue = values["UDValue"]
-            LRValue = values["LRValue"]
-            flipped = values["flipped"]
-            return (UDValue, LRValue, flipped)
-    except OSError as e:
-        saveconfig(7.5,7.5,False)
-        loadconfig()
+    with open ("config.json", "r") as config:
+        values = json.load(config)
+        UDValue = values["UDValue"]
+        LRValue = values["LRValue"]
+        flipped = values["flipped"]
+        return (UDValue, LRValue, flipped)
 
 def saveconfig(UDValue, LRValue, flipped):
     with open ("config.json", "w") as config:
