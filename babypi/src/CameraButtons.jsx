@@ -6,7 +6,7 @@ import Buttons from './Buttons';
 export default function CameraButtons() {
     function handleClick(e) {
         e.preventDefault();
-        let url = "http://78.149.156.60:5000/" + (e.currentTarget.id);
+        let url =  (e.currentTarget.id);
         async function moveCamera(e) {
             // sends a get request to /settings
             const response = await fetch(url);

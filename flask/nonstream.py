@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 
 import io
+import os
 import time
 from picamera2 import Picamera2
-from picamera2.encoders import JpegEncoder
+from picamera2.encoders import MJPEGEncoder
 from picamera2.outputs import FileOutput
 
 class StreamingOutput(io.BufferedIOBase):
@@ -19,10 +20,12 @@ class StreamingOutput(io.BufferedIOBase):
         self.file.write(b"\r\n")
         self.frame = buf
 
-picam2 = Picamera2()
-picam2.configure(picam2.create_video_configuration(main={"size": (640, 480)}))
-output = StreamingOutput("stream.mjpg")
-picam2.start_recording(JpegEncoder(), FileOutput(output))
+tuningpath = os.path.join(os.getcwd(), "tuning.json")
+tuning = Picamera2.load_tuning_file(tuningpath)
+picam2 = Picamera2(tuning=tuning)
+picam2.configure(picam2.create_video_configuration(main={"size": (1024, 720)}))
+output = StreamingOutput("./static/stream.mjpg")
+picam2.start_recording(MJPEGEncoder(), FileOutput(output))
 
 try:
     while True:

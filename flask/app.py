@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from flask import Flask, redirect
+from flask import Flask, redirect, render_template
 import RPi.GPIO as GPIO
 from time import sleep
 import os
@@ -22,9 +22,9 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    (UDValue,LRValue,flipped) = loadconfig()
-    return f"App Loaded<hr>LRPIN : {LRPIN}<br>UDPIN : {UDPIN}<br>UDValue : {UDValue}<br>LRValue : {LRValue}<br>Flipped : {flipped}<hr>"
-
+#    (UDValue,LRValue,flipped) = loadconfig()
+#    return f"App Loaded<hr>LRPIN : {LRPIN}<br>UDPIN : {UDPIN}<br>UDValue : {UDValue}<br>LRValue : {LRValue}<br>Flipped : {flipped}<hr>"
+    return render_template("index.html")
 
 @app.route("/up")
 def up():

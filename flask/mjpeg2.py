@@ -94,7 +94,7 @@ output = StreamingOutput()
 picam2.start_recording(MJPEGEncoder(), FileOutput(output))
 
 try:
-    address = ('', 8000)
+    address = ('0.0.0.0', 8000)
     server = StreamingServer(address, StreamingHandler)
     server.serve_forever()
 finally:
