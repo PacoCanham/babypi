@@ -8,6 +8,7 @@ import RPi.GPIO as GPIO
 from time import sleep
 import os
 import json
+import sqlite3
 
 LRPIN = 12
 UDPIN = 33
@@ -21,12 +22,13 @@ LR = GPIO.PWM(LRPIN, 50)
 UD.start(0)
 LR.start(0)
 
+
+app = Flask(__name__)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
-app = Flask(__name__)
 Session(app)
-db = SQL("sqlite:///babycam.db")
-
+db = sqlite3.connect("babycam.db")
+db = db.cursor()
 
 @app.route("/")
 @login_required
@@ -157,6 +159,7 @@ def login():
         elif not request.form.get("password"):
             return apology("must provide password", 403)
         rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username").lower())
+        rows = rows.fetchall()
         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
             return apology("invalid username and/or password", 403)
         session["user_id"] = rows[0]["id"]
@@ -171,6 +174,7 @@ def register():
         username = request.form.get("username").lower()
         passwordhash = generate_password_hash(request.form.get("password"))
         usernamecheck = db.execute("SELECT 1 FROM users WHERE username = ?", username)
+        usernamecheck = usernamecheck.fetchall()
         if request.form.get("password") != request.form.get("confirmation"):
             return apology("Passwords do not match")
         if usernamecheck:
