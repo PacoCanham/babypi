@@ -6,19 +6,18 @@ import Buttons from './Buttons';
 export default function CameraButtons() {
     function handleClick(e) {
         e.preventDefault();
-        let url = "http://localhost:5000/" + (e.currentTarget.id);
-        async function moveCamera() {
+        let url = "http://78.149.156.60:5000/" + (e.currentTarget.id);
+        async function moveCamera(e) {
             // sends a get request to /settings
             const response = await fetch(url);
-            // console.log(url)
         }
         moveCamera();
-        if (e.currentTarget.id == 'flip') {
-            window.location.reload();		
-	}
+       if (e.currentTarget.id == 'flip'){
+            setTimeout(()=>{location.reload()}, 1000);
+        }
     }
 
-  return (
+ return (
 	<div>
 		<ButtonGroup size="Large"  orientation="vertical" variant="contained" aria-label="outlined primary button group">
         <Buttons btnid="up" handleClick={handleClick} content={<KeyboardArrowUpSharp/>}/>				

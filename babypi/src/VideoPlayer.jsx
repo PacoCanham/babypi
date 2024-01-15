@@ -3,7 +3,6 @@ import { Box, Grid, Slider, Stack, Typography } from '@mui/material'
 import React, { useState } from 'react'
 import ReactPlayer from 'react-player'
 
-
 export default function VideoPlayer(){
     const {videoVolume, setVideoVolume} = useState(50);
 
@@ -14,7 +13,7 @@ export default function VideoPlayer(){
     return (
     <>
     <Box sx={{width: "95%",textAlign:"center", margin:"auto", padding:2}}>
-    <img src={"http://localhost:8000/stream.mjpg"} width={"75%"}style={{border:"2px solid black", margin:"auto", padding:"0"}}/>   
+    <img src='http://78.149.156.60:8000/stream.mjpg' width={"75%"} style={{border:"2px solid black", margin:"auto", padding:"0"}}/>   
      <Typography gutterBottom>
             Volume
      </Typography>
