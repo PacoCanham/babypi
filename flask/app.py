@@ -29,10 +29,15 @@ db = SQL("sqlite:///babycam.db")
 
 
 @app.route("/")
+@login_required
 def index():
+    return render_template("index.html")
+
+@app.route("/data")
+@login_required
+def data():
     (UDValue,LRValue,flipped) = loadconfig()
     return f"App Loaded<hr>LRPIN : {LRPIN}<br>UDPIN : {UDPIN}<br>UDValue : {UDValue}<br>LRValue : {LRValue}<br>Flipped : {flipped}<hr>"
-#    return render_template("index.html")
 
 @app.after_request
 def after_request(response):
