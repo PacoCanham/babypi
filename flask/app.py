@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from flask import Flask, redirect, render_template
+from flask import Flask, redirect, render_template, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
@@ -29,6 +29,19 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 db = sqlite3.connect("babycam.db")
 db = db.cursor()
+
+def login_required(f):
+    """
+    Decorate routes to require login.
+
+    http://flask.pocoo.org/docs/0.12/patterns/viewdecorators/
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get("user_id") is None:
+            return redirect("/login")
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route("/")
 @login_required
@@ -136,19 +149,6 @@ def saveconfig(UDValue, LRValue, flipped):
     with open ("config.json", "w") as config:
         data = {"UDValue" : UDValue,"LRValue" : LRValue,"flipped" : bool(flipped)}
         json.dump(data, config)
-
-def login_required(f):
-    """
-    Decorate routes to require login.
-
-    http://flask.pocoo.org/docs/0.12/patterns/viewdecorators/
-    """
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if session.get("user_id") is None:
-            return redirect("/login")
-        return f(*args, **kwargs)
-    return decorated_function
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
