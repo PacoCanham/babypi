@@ -175,12 +175,15 @@ def saveconfig(UDValue, LRValue, flipped):
 def login():
     session.clear()
     if request.method == "POST":
-        if not request.form.get("username"):
+        data = request.json
+        username = data.get("username").lower()
+        password = data.get("password")
+        if not username:
             return apology("must provide username")
-        elif not request.form.get("password"):
+        elif not password:
             return apology("must provide password")
-        rows = db.execute("SELECT * FROM users WHERE username = ?", (request.form.get("username").lower(),)).fetchall()
-        if len(rows) != 1 or not check_password_hash(rows[0][2], request.form.get("password")):
+        rows = db.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchall()
+        if len(rows) != 1 or not check_password_hash(rows[0][2], password):
             return apology("invalid username and/or password")
         session["user_id"] = rows[0][0]
         user_id = session["user_id"]
@@ -192,16 +195,19 @@ def login():
 @login_required
 def register():
     if request.method == "POST":
-        username = request.form.get("username").lower()
-        passwordhash = generate_password_hash(request.form.get("password"))
+        data = request.json
+        username = data.get("username").lower
+        password = data.get("password")
+        confirmation = data.get("confirmation")
+        passwordhash = generate_password_hash(password)
         usernamecheck = db.execute("SELECT 1 FROM users WHERE username = ?", (username,)).fetchone()
-        if request.form.get("password") != request.form.get("confirmation"):
+        if password != confirmation:
             return apology("Passwords do not match")
         if usernamecheck:
             return apology("Username Taken")
-        elif not request.form.get("password"):
+        elif not password:
             return apology("Please enter a password")
-        elif not request.form.get("username"):
+        elif not username:
             return apology("Please enter a username")
         else:
             db.execute("INSERT INTO users (username, hash) VALUES (?, ?)", (username, passwordhash,))

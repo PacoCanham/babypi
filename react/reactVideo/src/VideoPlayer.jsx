@@ -1,7 +1,6 @@
 import { VolumeDown, VolumeUp } from '@mui/icons-material';
 import { Box, Grid, Slider, Stack, Typography } from '@mui/material'
 import React, { useState } from 'react'
-import ReactPlayer from 'react-player'
 
 
 export default function VideoPlayer(){
