@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from flask import Flask, redirect, render_template, session, request
+from flask import Flask, redirect, render_template, session, request, jsonify
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
@@ -49,22 +49,35 @@ def login_required(f):
     return decorated_function
 
 def apology(reason):
-    return "<html><head><title>Babycam</title></head><body style='text-align:center'><h1>Error</h1><h2>" + reason + "</h2><a href='/login'>Return to login</a></body></html>"
+    return {'error':reason}
 
 @app.route("/")
 @login_required
 def index():
+    return render_template("index.html")
+
+@app.route("/viewers")
+@login_required
+def viewers():
     ip_pattern = re.compile(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')
     viewers = 0
     iplist = set()
     with open ("./logs/ip.log", "r") as file:
         for line in file:
-            if "Errno" not in line:
-                iplist.add(ip_pattern.search(line).group())
-            else:
-                iplist.remove(ip_pattern.search(line).group())
+            if "GET" in line:
+                ipadd = ip_pattern.search(line)
+                if ipadd:
+                    ipadd = ipadd.group()
+                    if ipadd not in iplist:
+                        iplist.add(ipadd)
+            elif "Errno" in line:
+                ipadd = ip_pattern.search(line)
+                if ipadd:
+                    ipadd = ipadd.group()
+                    if ipadd in iplist:
+                        iplist.remove(ipadd)
     viewers = len(iplist)
-    return render_template("index.html", viewers=viewers)
+    return {'viewers' : viewers}
 
 @app.route("/data")
 @login_required
@@ -184,7 +197,7 @@ def login():
             return apology("invalid username and/or password")
         session["user_id"] = rows[0][0]
         user_id = session["user_id"]
-        return redirect("/")
+        return {'url':'/'}
     else:
         return render_template("login.html")
 
@@ -210,7 +223,7 @@ def register():
             db.execute("INSERT INTO users (username, hash) VALUES (?, ?)", (username, passwordhash,))
 #            session["user_id"] = db.execute("SELECT * FROM users WHERE username = ?", (request.form.get("username").lower(),)).fetchall()[0][0]
 #            user_id = session["user_id"]
-            return redirect("/")
+            return {'url' : '/login'}
     else:
         return render_template("register.html")
 
@@ -221,4 +234,4 @@ def logout():
 
 if __name__ == '__main__':
     os.system('./video.sh')
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=80, debug=False)

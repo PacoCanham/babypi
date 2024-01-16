@@ -20,16 +20,31 @@ export default function LoginForm() {
       })
     };
 
-    function handleSubmit(e){
-      e.preventDefault()
-      fetch('/login', {
-        method: 'POST',
-        body: JSON.stringify(form),
-        headers: {
-          'Content-Type': 'application/json'
+    async function postForm(){
+        const response = await fetch('/login', {
+            method: 'POST',
+            body: JSON.stringify(form),
+            headers: {
+            'Content-Type': 'application/json'
+            }
+        })
+        const data = await response.json()
+        return (data)
+//        .then(response => {
+//          const data = response.json()
+//          return data
+//        })
+    }
+
+    async function handleSubmit(e){
+        e.preventDefault();
+        const data = await postForm()
+        if (data.url){
+            window.location.assign(data.url)
+        } else if (data.error){
+            alert(data.error)
         }
-      })
-    };
+    }
 
   return (
     <Box
@@ -70,6 +85,7 @@ export default function LoginForm() {
           sx={{ input: { color: 'white' } }}
         />
         <Button
+        type="submit"
         variant="contained"
         color={((form.username == "" || form.password == "")? "error": "success")}
         disabled={((form.username == "" || form.password == "")? true: false)}
