@@ -145,11 +145,11 @@ def flip():
     (UDValue, LRValue, flipped) = loadconfig()
     if not flipped:
         os.system('killall mjpeg*')
-        os.system('./mjpeg2.py vflip &> out.log')
+        os.system('./video.sh vflip')
         flipped = True
     else:
         os.system('killall mjpeg*')
-        os.system('./mjpeg2.py &> out.log')
+        os.system('./video.sh')
         flipped = False
     saveconfig(UDValue,LRValue,flipped)
     return ('', 204)
@@ -217,7 +217,5 @@ def logout():
 	return redirect("/")
 
 if __name__ == '__main__':
-    os.system('./mjpeg2.py &> out.log')
-#    vidcmd = "./mjpeg2.py"
-#    vidlog = subprocess.check_output(vidcmd, stderr=subprocess.STDOUT, text=True, shell=True)
+    os.system('./video.sh')
     app.run(host='0.0.0.0', port=5000, debug=False)
