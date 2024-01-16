@@ -57,16 +57,13 @@ def index():
     ip_pattern = re.compile(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')
     viewers = 0
     iplist = set()
-    with open ("out.log", "r") as file:
+    with open ("./logs/ip.log", "r") as file:
         for line in file:
             if "Errno" not in line:
                 iplist.add(ip_pattern.search(line).group())
             else:
                 iplist.remove(ip_pattern.search(line).group())
     viewers = len(iplist)
-    with open ("out.log", "w") as ipl:
-        for item in iplist:
-            ipl.write(item)
     return render_template("index.html", viewers=viewers)
 
 @app.route("/data")
