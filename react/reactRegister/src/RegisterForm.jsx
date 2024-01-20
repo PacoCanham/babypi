@@ -100,6 +100,7 @@ export default function RegisterForm() {
           sx={{ input: { color: 'white' } }}
         />
         <Button
+        type='submit'
         variant="contained"
         color={((form.username == "" || form.password == "" || form.confirmation == "" || form.confirmation != form.password)? "error": "success")}
         disabled={((form.username == "" || form.password == "" || form.confirmation == "" || form.confirmation != form.password) ? true: false)}
