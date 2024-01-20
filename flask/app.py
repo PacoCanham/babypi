@@ -33,7 +33,6 @@ Session(app)
 
 #db = SQL("sqlite:///babycam.db")
 dbloc = sqlite3.connect("babycam.db",  check_same_thread=False)
-db = dbloc.cursor()
 
 def login_required(f):
     """
@@ -185,6 +184,7 @@ def saveconfig(UDValue, LRValue, flipped):
 def login():
     session.clear()
     if request.method == "POST":
+        db = dbloc.cursor()
         data = request.json
         username = data.get("username").lower()
         password = data.get("password")
@@ -197,14 +197,17 @@ def login():
             return apology("invalid username and/or password")
         session["user_id"] = rows[0][0]
         user_id = session["user_id"]
+        db.close()
         return {'url':'/'}
     else:
+        db.close()
         return render_template("login.html")
 
 @app.route("/register", methods=["GET", "POST"])
 @login_required
 def register():
     if request.method == "POST":
+        db = dbloc.cursor()
         data = request.json
         username = data.get("username").lower
         password = data.get("password")
@@ -223,8 +226,10 @@ def register():
             db.execute("INSERT INTO users (username, hash) VALUES (?, ?)", (username, passwordhash,))
 #            session["user_id"] = db.execute("SELECT * FROM users WHERE username = ?", (request.form.get("username").lower(),)).fetchall()[0][0]
 #            user_id = session["user_id"]
+            db.close()
             return {'url' : '/login'}
     else:
+        db.close()
         return render_template("register.html")
 
 @app.route("/logout")
