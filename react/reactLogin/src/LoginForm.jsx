@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { styled, TextField, FormGroup, Box, Button } from '@mui/material';
+import { TextField, FormHelperText, Box, Button, FormControl } from '@mui/material';
 import { useState } from 'react';
+import AccountCircle from '@mui/icons-material/AccountCircle';
 
 export default function LoginForm() {
 
@@ -47,6 +48,15 @@ export default function LoginForm() {
     }
 
   return (
+    <FormControl
+      sx={{
+      bgcolor: 'background.paper',
+      boxShadow: 1,
+      borderRadius: 5,
+      p: 2,
+      minWidth: 300,
+    }}>
+      <FormHelperText id="form_helper Text">Please enter Account information</FormHelperText>
     <Box
           component="form"
           sx={{
@@ -56,34 +66,41 @@ export default function LoginForm() {
           autoComplete="off"
           onSubmit={handleSubmit}
         >
-          <FormGroup>
+        <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
+          <AccountCircle sx={{ 
+            color:(form.username == "") ? "red" : "blue", mr: 1, my: 0.5 }}
+          />
           <TextField
-          focused
-          required
-          id="username-input"
-          name = "username"
-          label="Username"
-          size="Large"
-          error = {(form.username === "")?true:false}
-          color = "success"
-          value = {form.username}
-          onChange={handleChange}
-          sx={{ input: { color: 'white' } }}
+            required
+            id="username-input"
+            name = "username"
+            label="Username"
+            error = {(form.username === "")?true:false}
+            color = "success"
+            value = {form.username}
+            onChange={handleChange}
+          />        
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
+            <AccountCircle 
+            sx={{ 
+              color:(form.password == "") ? "red" : "blue", mr: 1, my: 0.5 }}
+            />
+            <TextField
+            required
+            id="password-input"
+            name = "password"
+            label="Password"
+            type="password"
+            autoComplete="current-password"
+            error = {(form.password === "")?true:false}
+            color = "success"
+            value = {form.password}
+            onChange={handleChange}
         />
-          <TextField
-          focused
-          id="password-input"
-          name = "password"
-          label="Password"
-          type="password"
-          autoComplete="current-password"
-          size="Large"
-          error = {(form.password === "")?true:false}
-          color = "success"
-          value = {form.password}
-          onChange={handleChange}
-          sx={{ input: { color: 'white' } }}
-        />
+        </Box>
+
+  
         <Button
         type="submit"
         variant="contained"
@@ -94,8 +111,9 @@ export default function LoginForm() {
           Log in
         </Button>
 
-        </FormGroup>
+
     </Box>
+    </FormControl>
 
   );
 }
