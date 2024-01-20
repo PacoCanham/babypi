@@ -32,7 +32,6 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 #db = SQL("sqlite:///babycam.db")
-dbloc = sqlite3.connect("babycam.db",  check_same_thread=False)
 
 def login_required(f):
     """
@@ -184,6 +183,7 @@ def saveconfig(UDValue, LRValue, flipped):
 def login():
     session.clear()
     if request.method == "POST":
+        dbloc = sqlite3.connect("babycam.db",  check_same_thread=False)
         db = dbloc.cursor()
         data = request.json
         username = data.get("username").lower()
@@ -207,6 +207,7 @@ def login():
 @login_required
 def register():
     if request.method == "POST":
+        dbloc = sqlite3.connect("babycam.db",  check_same_thread=False)
         db = dbloc.cursor()
         data = request.json
         username = data.get("username").lower
