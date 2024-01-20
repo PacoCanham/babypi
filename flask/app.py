@@ -183,8 +183,8 @@ def saveconfig(UDValue, LRValue, flipped):
 def login():
     session.clear()
     if request.method == "POST":
-        dbloc = sqlite3.connect("babycam.db",  check_same_thread=False)
-        db = dbloc.cursor()
+        conn = sqlite3.connect("babycam.db")
+        cur = dbloc.cursor()
         data = request.json
         username = data.get("username").lower()
         password = data.get("password")
@@ -192,7 +192,8 @@ def login():
             return apology("must provide username")
         elif not password:
             return apology("must provide password")
-        rows = db.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchall()
+        cur.execute("SELECT * FROM users WHERE username = ?", (username,))
+        rows = cur.fetchone() 
         if len(rows) != 1 or not check_password_hash(rows[0][2], password):
             return apology("invalid username and/or password")
         session["user_id"] = rows[0][0]
@@ -206,14 +207,15 @@ def login():
 @login_required
 def register():
     if request.method == "POST":
-        dbloc = sqlite3.connect("babycam.db",  check_same_thread=False)
-        db = dbloc.cursor()
+        conn = sqlite3.connect("babycam.db")
+        cur = dbloc.cursor()
         data = request.json
         username = data.get("username").lower
         password = data.get("password")
         confirmation = data.get("confirmation")
         passwordhash = generate_password_hash(password)
-        usernamecheck = db.execute("SELECT 1 FROM users WHERE username = ?", (username,)).fetchone()
+        cur.execute("SELECT 1 FROM users WHERE username = ?", (username,))
+        usernamecheck = cur.fetchone() 
         if password != confirmation:
             return apology("Passwords do not match")
         if usernamecheck:
@@ -223,7 +225,7 @@ def register():
         elif not username:
             return apology("Please enter a username")
         else:
-            db.execute("INSERT INTO users (username, hash) VALUES (?, ?)", (username, passwordhash,))
+            cur.execute("INSERT INTO users (username, hash) VALUES (?, ?)", (username, passwordhash,))
 #            session["user_id"] = db.execute("SELECT * FROM users WHERE username = ?", (request.form.get("username").lower(),)).fetchall()[0][0]
 #            user_id = session["user_id"]
             db.close()
