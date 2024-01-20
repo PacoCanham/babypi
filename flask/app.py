@@ -200,7 +200,6 @@ def login():
         db.close()
         return {'url':'/'}
     else:
-        db.close()
         return render_template("login.html")
 
 @app.route("/register", methods=["GET", "POST"])
@@ -230,7 +229,6 @@ def register():
             db.close()
             return {'url' : '/login'}
     else:
-        db.close()
         return render_template("register.html")
 
 @app.route("/logout")
