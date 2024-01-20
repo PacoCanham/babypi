@@ -194,7 +194,6 @@ def login():
             return apology("must provide password")
         cur.execute("SELECT * FROM users WHERE username = ?", (username,))
         rows = cur.fetchall()
-        print(rows)
         if len(rows) != 1 or not check_password_hash(rows[0][2], password):
             return apology("invalid username and/or password")
         session["user_id"] = rows[0][0]
@@ -212,7 +211,6 @@ def register():
         cur = conn.cursor()
         data = request.json
         username = data.get("username").lower()
-        print(type(username))
         password = data.get("password")
         confirmation = data.get("confirmation")
         passwordhash = generate_password_hash(password)
