@@ -19,14 +19,14 @@ export default function CameraButtons() {
 
  return (
 	<div>
-		<ButtonGroup size="Large"  orientation="vertical" variant="contained" aria-label="outlined primary button group">
-        <Buttons btnid="up" handleClick={handleClick} content={<KeyboardArrowUpSharp/>}/>				
-                <ButtonGroup size="Large" variant="contained" aria-label="outlined primary button group">
+		<ButtonGroup  size="Large"  orientation="vertical" variant="contained">
+        <Buttons sx={{borderTopRightRadius:"100%", borderTopLeftRadius:"100%"}} btnid="up" handleClick={handleClick} content={<KeyboardArrowUpSharp/>}/>				
+                <ButtonGroup size="Large" variant="contained">
                     <Buttons btnid="left" handleClick={handleClick} content={<KeyboardArrowLeftSharp/>}/>				
                     <Buttons btnid="flip" handleClick={handleClick} content='FLIP'/>				
                     <Buttons btnid="right" handleClick={handleClick} content={<KeyboardArrowRightSharp/>}/>			
                 </ButtonGroup>
-                <Buttons btnid="down" handleClick={handleClick} content={<KeyboardArrowDownSharp/>}/>				
+                <Buttons btnid="down" sx={{borderBottomRightRadius:"100%", borderBottomLeftRadius:"100%"}} handleClick={handleClick} content={<KeyboardArrowDownSharp/>}/>				
 		</ButtonGroup>
 	</div>
   );
