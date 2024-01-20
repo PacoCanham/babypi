@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { styled, TextField, FormGroup, Box, Button } from '@mui/material';
+import { styled, TextField, FormGroup, Box, Button, FormControl } from '@mui/material';
 import { useState } from 'react';
 
 export default function RegisterForm() {
@@ -20,18 +20,37 @@ export default function RegisterForm() {
       })
     };
 
-    function handleSubmit(e){
-      e.preventDefault()
-      fetch('/login', {
-        method: 'POST',
-        body: JSON.stringify(form),
-        headers: {
+    async function postForm(){
+      const response = await fetch('/register', {
+          method: 'POST',
+          body: JSON.stringify(form),
+          headers: {
           'Content-Type': 'application/json'
-        }
+          }
       })
-    };
+      const data = await response.json()
+      return (data)
+  }
+
+  async function handleSubmit(e){
+      e.preventDefault();
+      const data = await postForm()
+      if (data.url){
+          window.location.assign(data.url)
+      } else if (data.error){
+          alert(data.error)
+      }
+  }
 
   return (
+    <FormControl
+    sx={{
+    bgcolor: 'background.paper',
+    boxShadow: 1,
+    borderRadius: 5,
+    p: 2,
+    minWidth: 300,
+  }}>
     <Box
           component="form"
           sx={{
@@ -41,7 +60,7 @@ export default function RegisterForm() {
           autoComplete="off"
           onSubmit={handleSubmit}
         >
-          <FormGroup>
+          <FormGroup sx={{alignItems:'center'}}>
           <TextField
           focused
           required
@@ -53,7 +72,6 @@ export default function RegisterForm() {
           color = "success"
           value = {form.username}
           onChange={handleChange}
-          sx={{ input: { color: 'white' } }}
         />
           <TextField
           focused
@@ -67,7 +85,6 @@ export default function RegisterForm() {
           color = "success"
           value = {form.password}
           onChange={handleChange}
-          sx={{ input: { color: 'white' } }}
         />
         <TextField
           focused
@@ -93,6 +110,7 @@ export default function RegisterForm() {
 
         </FormGroup>
     </Box>
+    </FormControl>
 
   );
 }
