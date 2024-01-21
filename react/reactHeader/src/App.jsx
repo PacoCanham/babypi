@@ -9,7 +9,6 @@ import Menu from '@mui/material/Menu';
 import Settings from '@mui/icons-material/Settings';
 import { useEffect } from 'react';
 import { useState } from 'react';
-import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOutlined from '@mui/icons-material/VisibilityOutlined';
 
 export default function App() {
@@ -28,7 +27,7 @@ export default function App() {
         .then(data => setViewers(data.viewers))
     };
     getViewers();
-    const intervalId = setInterval(fetchViewers, 30000);
+    const intervalId = setInterval(getViewers, 30000);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -51,6 +50,7 @@ export default function App() {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Hello {username}
           </Typography>
+          <VisibilityOutlined /> {viewers}
             <div>
               <IconButton
                 size="large"
@@ -59,7 +59,6 @@ export default function App() {
               >
                 <Settings/>
               </IconButton>
-              <VisibilityOutlined size={"large"}/>
               <Menu
                 id="menu-appbar"
                 anchorEl={anchorEl}
