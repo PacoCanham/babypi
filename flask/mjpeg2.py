@@ -12,7 +12,6 @@ from picamera2 import Picamera2
 from picamera2.encoders import MJPEGEncoder
 from picamera2.outputs import FileOutput
 import pyaudio
-import numpy as np
 import socket
 
 # Set up the PyAudio instance
