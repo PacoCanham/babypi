@@ -56,9 +56,9 @@ def apology(reason):
 def index():
     return render_template("index.html")
 
-@app.route("/viewers")
+@app.route("/updates")
 @login_required
-def viewers():
+def updates():
     ip_pattern = re.compile(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')
     viewers = 0
     iplist = set()
@@ -266,10 +266,11 @@ def register():
         return render_template("register.html")
 
 @login_required
-@app.route("/username")
-def get_username():
+@app.route("/getOnce")
+def getOnce():
     username = session["username"]
-    return {"username" : username.capitalize()}
+    (UDValue, LRValue, flipped, led) = loadconfig()
+    return {"username" : username.capitalize(), "led":led}
 
 @app.route("/logout")
 def logout():
