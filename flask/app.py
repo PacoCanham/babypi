@@ -68,7 +68,7 @@ def viewers():
                 ipadd = ip_pattern.search(line)
                 if ipadd:
                     ipadd = ipadd.group()
-                    if ipadd not in iplist:
+                    if ipadd not in iplist: 
                         iplist.add(ipadd)
             elif "Errno" in line:
                 ipadd = ip_pattern.search(line)

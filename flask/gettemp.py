@@ -10,8 +10,7 @@ import sys
 import RPi.GPIO as GPIO
 
 #  Set Pullup mode on GPIO14 first.
-GPIO_PIN_NUMBER=14
-GPIO.setmode(GPIO.BCM)
+GPIO_PIN_NUMBER=8
 GPIO.setup(GPIO_PIN_NUMBER, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 def ds18b20_read_sensors():
