@@ -80,7 +80,7 @@ export default function Header() {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Hello {username}
           </Typography>
-          <VisibilityOutlined /> {viewers} - {temp}°C
+          {temp}°C - <VisibilityOutlined /> {viewers}
             <div>
               <IconButton
                 size="large"
@@ -103,7 +103,7 @@ export default function Header() {
                 }}
                 open={Boolean(anchorEl)}
               >
-                <MenuItem onClick={handleLEDs}>Turn LED's {(ledBool)?"ON":"OFF"}</MenuItem>
+                <MenuItem onClick={handleLEDs}>Turn LED's {(ledBool)?ON:OFF}</MenuItem>
                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
                 <MenuItem onClick={closeMenu}>Close Menu</MenuItem>
               </Menu>

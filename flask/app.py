@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+
 from flask import Flask, redirect, render_template, session, request, jsonify
 from flask_session import Session
 from flask_cors import CORS, cross_origin
@@ -51,7 +52,7 @@ def login_required(f):
     return decorated_function
 
 def apology(reason):
-    return jsonify({'error':reason})
+    return {'error':reason}
 
 @app.route("/")
 @login_required
@@ -191,7 +192,7 @@ def led_on_off():
     GPIO.output(LED_1_PIN, led)  
     GPIO.output(LED_2_PIN, led)
     saveconfig(UDValue, LRValue, flipped, led)
-    return jsonify({"ok":"ok"})
+    return ('', 204)
 
 def loadconfig():
     try:
@@ -232,7 +233,7 @@ def login():
         session["username"] = rows[0][1]
         user_id = session["user_id"]
         conn.close()
-        return jsonify({'url':'/'})
+        return {'url':'/'}
     else:
         return render_template("login.html")
 

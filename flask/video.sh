@@ -1,5 +1,5 @@
 #!/bin/bash
-cd $HOME/babypi/flask/
+cd /home/paco/babypi/flask/
 
 if [ "$#" -eq 0 ]; then
     ./mjpeg2.py &> ./logs/ip.log &
