@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 from flask import Flask, redirect, render_template, session, request, jsonify
 from flask_session import Session
+from flask_cors import CORS, cross_origin
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 from time import sleep
@@ -31,6 +32,7 @@ LR.start(0)
 
 vidlog = ""
 app = Flask(__name__)
+cors = CORS(app)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
@@ -49,7 +51,7 @@ def login_required(f):
     return decorated_function
 
 def apology(reason):
-    return {'error':reason}
+    return jsonify({'error':reason})
 
 @app.route("/")
 @login_required
@@ -78,7 +80,7 @@ def updates():
                         iplist.remove(ipadd)
     viewers = len(iplist)
     temp = gettemp()
-    return {'viewers' : viewers, "temp":temp}
+    return jsonify({'viewers' : viewers, "temp":temp})
 
 @app.route("/data")
 @login_required
@@ -189,7 +191,7 @@ def led_on_off():
     GPIO.output(LED_1_PIN, led)  
     GPIO.output(LED_2_PIN, led)
     saveconfig(UDValue, LRValue, flipped, led)
-    return {"ok":"ok"}
+    return jsonify({"ok":"ok"})
 
 def loadconfig():
     try:
@@ -230,7 +232,7 @@ def login():
         session["username"] = rows[0][1]
         user_id = session["user_id"]
         conn.close()
-        return {'url':'/'}
+        return jsonify({'url':'/'})
     else:
         return render_template("login.html")
 
@@ -261,7 +263,7 @@ def register():
 #            user_id = session["user_id"]
             conn.commit()
             conn.close()
-            return {'url' : '/login'}
+            return jsonify({'url' : '/login'})
     else:
         return render_template("register.html")
 
@@ -270,12 +272,12 @@ def register():
 def getOnce():
     username = session["username"]
     (UDValue, LRValue, flipped, led) = loadconfig()
-    return {"username" : username.capitalize(), "led":led}
+    return jsonify({"username" : username.capitalize(), "led":led})
 
 @app.route("/logout")
 def logout():
 	session.clear()
-	return {"url":"/login"}
+	return jsonify({"url":"/login"})
 
 if __name__ == '__main__':
     os.system('./video.sh')

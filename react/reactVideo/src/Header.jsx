@@ -60,13 +60,17 @@ export default function Header() {
 
   const handleLEDs = () => {
     fetch('/led_on_off')
-    setAnchorEl(null);
+    closeMenu()
   };
 
   const handleLogout = () => {
     fetch('/logout')
      .then(response => response.json())
      .then(data => window.location.assign(data.url))
+  }
+
+  function closeMenu(){
+    setAnchorEl(null);
   }
 
   return (
@@ -101,7 +105,7 @@ export default function Header() {
               >
                 <MenuItem onClick={handleLEDs}>Turn LED's {(ledBool)?"ON":"OFF"}</MenuItem>
                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
-                <MenuItem onClick={()=>setAnchorEl(null)}>Close Menu</MenuItem>
+                <MenuItem onClick={closeMenu}>Close Menu</MenuItem>
               </Menu>
             </div>
         </Toolbar>
