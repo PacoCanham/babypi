@@ -15,32 +15,42 @@ export default function Header() {
   const [username, setUsername] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [viewers, setViewers] = useState(1);
+  const [ledBool, setLedBool] = useState(true)
+  const [temp, setTemp] = useState(null)
 
   // get username and viewers on launch
   useEffect(()=>{
-    const getUsername = () => {
-      fetch("/username")
+    const getOnce = () => {
+      fetch("/getOnce")
        .then(response => response.json())
-       .then(username => setUsername(username.username))
+       .then(dictionary => {
+        setUsername(dictionary.username)
+        setLedBool(dictionary.led)
+        }
+        )
       };
-    const getViewers = () => {
-      fetch('/viewers')
+    const getUpdates = () => {
+      fetch('/updates')
        .then(response => response.json())
        .then(viewers => setViewers(viewers.viewers))
       };
-      getUsername();
-      getViewers();
+      getOnce();
+      getUpdates();
     },[]); 
 
   //get viewers every 30seconds
   useEffect(() => {
-    const getViewers = () => {
-      fetch('/viewers')
+    const getUpdates = () => {
+      fetch('/updates')
         .then(response => response.json())
-        .then(data => setViewers(data.viewers))
+        .then(data => {
+          setViewers(data.viewers)
+          setTemp(data.temp)
+        }
+        )
     };
-    getViewers();
-    const intervalId = setInterval(getViewers, 30000);
+    getUpdates();
+    const intervalId = setInterval(getUpdates, 30000);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -49,8 +59,8 @@ export default function Header() {
   };
 
   const handleLEDs = () => {
-    setAnchorEl(null);
     fetch('/led_on_off')
+    setAnchorEl(null);
   };
 
   const handleLogout = () => {
@@ -66,7 +76,7 @@ export default function Header() {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Hello {username}
           </Typography>
-          <VisibilityOutlined /> {viewers}
+          <VisibilityOutlined /> {viewers} - {temp}°C
             <div>
               <IconButton
                 size="large"
@@ -89,9 +99,9 @@ export default function Header() {
                 }}
                 open={Boolean(anchorEl)}
               >
-                <MenuItem onClick={handleLEDs}>Turn LED's {(ledbool)?"ON":"OFF"}</MenuItem>
+                <MenuItem onClick={handleLEDs}>Turn LED's {(ledBool)?"ON":"OFF"}</MenuItem>
                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
-                <MenuItem onClick={handleSettings}>Close Menu</MenuItem>
+                <MenuItem onClick={()=>setAnchorEl(null)}>Close Menu</MenuItem>
               </Menu>
             </div>
         </Toolbar>
