@@ -10,6 +10,7 @@ import sys
 import RPi.GPIO as GPIO
 
 #  Set Pullup mode on GPIO14 first.
+GPIO.setmode(GPIO.BOARD)
 GPIO_PIN_NUMBER=8
 GPIO.setup(GPIO_PIN_NUMBER, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
