@@ -1,25 +1,29 @@
 #!/usr/bin/python3
-
 from flask import Flask, redirect, render_template, session, request, jsonify
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
-import RPi.GPIO as GPIO
 from time import sleep
+from gettemp import gettemp
+import RPi.GPIO as GPIO
 import os
 import json
 import subprocess
-#from cs50 import SQL
 import sqlite3
 import re
 
 LRPIN = 12
 UDPIN = 33
+LED_1_PIN = 35
+LED_2_PIN = 37
+
 
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
 GPIO.setup(UDPIN, GPIO.OUT)
 GPIO.setup(LRPIN, GPIO.OUT)
+GPIO.setup(LED_1_PIN, GPIO.OUT)
+GPIO.setup(LED_2_PIN, GPIO.OUT)
 UD = GPIO.PWM(UDPIN, 50)
 LR = GPIO.PWM(LRPIN, 50)
 UD.start(0)
@@ -30,8 +34,6 @@ app = Flask(__name__)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
-
-#db = SQL("sqlite:///babycam.db")
 
 def login_required(f):
     """
@@ -75,12 +77,13 @@ def viewers():
                     if ipadd in iplist:
                         iplist.remove(ipadd)
     viewers = len(iplist)
-    return {'viewers' : viewers}
+    temp = gettemp()
+    return {'viewers' : viewers, "temp":temp}
 
 @app.route("/data")
 @login_required
 def data():
-    (UDValue,LRValue,flipped) = loadconfig()
+    (UDValue, LRValue, flipped, led) = loadconfig()
     return f"App Loaded<hr>LRPIN : {LRPIN}<br>UDPIN : {UDPIN}<br>UDValue : {UDValue}<br>LRValue : {LRValue}<br>Flipped : {flipped}<hr>"
 
 @app.after_request
@@ -94,63 +97,79 @@ def after_request(response):
 @app.route("/up")
 @login_required
 def up():
-    (UDValue,LRValue,flipped) = loadconfig()
+    (UDValue, LRValue, flipped, led) = loadconfig()
     UD.ChangeDutyCycle(UDValue) #to ensure movement
     sleep(0.1)
-    if UDValue > 3.0 :
-        UDValue -= 0.25
+    if (flipped):
+        if UDValue < 12.5 :
+            UDValue += 0.25
+    else:
+        if UDValue > 3.0 :
+            UDValue -= 0.25
     UD.ChangeDutyCycle(UDValue) #to ensure movement
     sleep(0.5)
     UD.ChangeDutyCycle(0) #to stop random jitters
-    saveconfig(UDValue,LRValue,flipped)
+    saveconfig(UDValue, LRValue, flipped, led)
     return ('', 204)
 
 @app.route("/down")
 @login_required
 def down():
-    (UDValue,LRValue,flipped) = loadconfig()
+    (UDValue, LRValue, flipped, led) = loadconfig()
     UD.ChangeDutyCycle(UDValue) #to ensure movement
     sleep(0.1)
-    if UDValue < 12.5 :
-        UDValue += 0.25
+    if (flipped):
+        if UDValue > 3.0 :
+            UDValue -= 0.25
+    else:
+        if UDValue < 12.5 :
+            UDValue += 0.25
     UD.ChangeDutyCycle(UDValue) #to ensure movement
     sleep(0.5)
     UD.ChangeDutyCycle(0) #to stop random jitters
-    saveconfig(UDValue,LRValue,flipped)
+    saveconfig(UDValue, LRValue, flipped, led)
     return ('', 204)
 
 @app.route("/right")
 @login_required
 def right():
-    (UDValue,LRValue,flipped) = loadconfig()
+    (UDValue, LRValue, flipped, led) = loadconfig()
     LR.ChangeDutyCycle(LRValue) #to ensure movement
     sleep(0.1)
-    if LRValue > 3.0 :
-        LRValue -= 0.25
+    if (flipped):
+        if LRValue < 12.5 :
+            LRValue += 0.25
+    else :
+        if LRValue > 3.0 :
+            LRValue -= 0.25
     LR.ChangeDutyCycle(LRValue) #to ensure movement
     sleep(0.5)
     LR.ChangeDutyCycle(0) #to stop random jitters
-    saveconfig(UDValue,LRValue,flipped)
+    saveconfig(UDValue, LRValue, flipped, led)
     return ('', 204)
 
 @app.route("/left")
 @login_required
 def left():
-    (UDValue,LRValue,flipped) = loadconfig()
+    (UDValue, LRValue, flipped, led) = loadconfig()
     LR.ChangeDutyCycle(LRValue) #to ensure movement
     sleep(0.1)
-    if LRValue < 12.5 :
-        LRValue += 0.25
+    if (flipped):
+        if LRValue > 3.0 :
+            LRValue -= 0.25
+    else :
+        if LRValue < 12.5 :
+            LRValue += 0.25
     LR.ChangeDutyCycle(LRValue) #to ensure movement
     sleep(0.5)
     LR.ChangeDutyCycle(0) #to stop random jitters
-    saveconfig(UDValue,LRValue,flipped)
+    saveconfig(UDValue, LRValue, flipped, led)
     return ('', 204)
 
 @app.route("/flip")
 @login_required
 def flip():
-    (UDValue, LRValue, flipped) = loadconfig()
+    (UDValue, LRValue, flipped, led) = loadconfig()
     if not flipped:
         os.system('killall mjpeg*')
         os.system('./video.sh vflip')
@@ -159,8 +178,18 @@ def flip():
         os.system('killall mjpeg*')
         os.system('./video.sh')
         flipped = False
-    saveconfig(UDValue,LRValue,flipped)
+    saveconfig(UDValue, LRValue, flipped, led)
     return ('', 204)
+
+@app.route("/led_on_off")
+@login_required
+def led_on_off():
+    (UDValue, LRValue, flipped, led) = loadconfig()
+    led = not led
+    GPIO.output(LED_1_PIN, led)  
+    GPIO.output(LED_2_PIN, led)
+    saveconfig(UDValue, LRValue, flipped, led)
+    return {"ok":"ok"}
 
 def loadconfig():
     try:
@@ -169,14 +198,15 @@ def loadconfig():
             UDValue = values["UDValue"]
             LRValue = values["LRValue"]
             flipped = values["flipped"]
-            return (UDValue, LRValue, flipped)
+            led = values["led"]
+            return (UDValue, LRValue, flipped, led)
     except OSError as e:
-        saveconfig(7.5,7.5,False)
+        saveconfig(7.5,7.5,False,False)
         loadconfig()
 
-def saveconfig(UDValue, LRValue, flipped):
+def saveconfig(UDValue, LRValue, flipped, led):
     with open ("config.json", "w") as config:
-        data = {"UDValue" : UDValue,"LRValue" : LRValue,"flipped" : bool(flipped)}
+        data = {"UDValue" : UDValue,"LRValue" : LRValue,"flipped" : bool(flipped),"led":bool(led)}
         json.dump(data, config)
 
 @app.route("/login", methods=["GET", "POST"])
@@ -197,6 +227,7 @@ def login():
         if len(rows) != 1 or not check_password_hash(rows[0][2], password):
             return apology("invalid username and/or password")
         session["user_id"] = rows[0][0]
+        session["username"] = rows[0][1]
         user_id = session["user_id"]
         conn.close()
         return {'url':'/'}
@@ -234,10 +265,16 @@ def register():
     else:
         return render_template("register.html")
 
+@login_required
+@app.route("/username")
+def get_username():
+    username = session["username"]
+    return {"username" : username.capitalize()}
+
 @app.route("/logout")
 def logout():
 	session.clear()
-	return redirect("/")
+	return {"url":"/login"}
 
 if __name__ == '__main__':
     os.system('./video.sh')

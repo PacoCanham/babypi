@@ -1,6 +1,6 @@
 import { VolumeDown, VolumeUp } from "@mui/icons-material";
 import { Slider, Stack } from "@mui/material";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import AudioPlayer from "react-h5-audio-player";
 
 // A custom component that wraps the AudioPlayer component and adds a volume slider
@@ -33,7 +33,6 @@ export default function CustomAudioPlayer({ src, capture }) {
                       min={0}
                       max={1}
                       className="volume-slider"
-                      sx={{width:"40vw", margin:"auto"}}
                   />
               <VolumeUp />
       </Stack>

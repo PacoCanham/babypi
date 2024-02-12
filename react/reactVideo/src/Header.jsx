@@ -48,8 +48,9 @@ export default function Header() {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleSettings = () => {
+  const handleLEDs = () => {
     setAnchorEl(null);
+    fetch('/led_on_off')
   };
 
   const handleLogout = () => {
@@ -88,7 +89,7 @@ export default function Header() {
                 }}
                 open={Boolean(anchorEl)}
               >
-                <MenuItem onClick={handleSettings}>Settings</MenuItem>
+                <MenuItem onClick={handleLEDs}>Turn LED's {(ledbool)?"ON":"OFF"}</MenuItem>
                 <MenuItem onClick={handleLogout}>Logout</MenuItem>
                 <MenuItem onClick={handleSettings}>Close Menu</MenuItem>
               </Menu>

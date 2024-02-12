@@ -1,5 +1,4 @@
-import { VolumeDown, VolumeUp } from '@mui/icons-material';
-import { Box, Grid, Slider, Stack, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import React, { useState } from 'react'
 import CustomAudioPlayer from './CustomAudioPlayer';
 
