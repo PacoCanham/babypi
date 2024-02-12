@@ -18,9 +18,7 @@ export default function CustomAudioPlayer({ src, capture }) {
 
   return (
     <div className="custom-audio-player">
-      {/* Render the AudioPlayer component with the src and capture props */}
       <AudioPlayer src={src} capture={capture} volume={volume} />
-      {/* Render a range input for the volume slider */}
         <Stack spacing={2} direction="row" alignItems={"center"}>
               <VolumeDown />
                   <Slider
