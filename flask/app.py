@@ -1,11 +1,13 @@
 #!/usr/bin/python3
 
-from flask import Flask, redirect, render_template, session, request, jsonify
+from apscheduler.schedulers.background import BackgroundScheduler
+from flask import Flask, redirect, render_template, session, request, jsonify, Response
 from flask_session import Session
 from flask_cors import CORS, cross_origin
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 from time import sleep
+import time
 from gettemp import gettemp
 import RPi.GPIO as GPIO
 import os
@@ -13,6 +15,7 @@ import json
 import subprocess
 import sqlite3
 import re
+import threading
 
 LRPIN = 12
 UDPIN = 33
@@ -38,6 +41,53 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
+
+# Create a buffer to store the audio data
+buffer = []
+
+def start_ffmpeg():
+    process = None
+    while True:
+        # Clear the buffer
+        if buffer:
+            buffer.clear()
+
+        # Terminate the previous process if it exists
+        if process:
+            process.terminate()
+
+        command = ["ffmpeg", "-re", "-ar", "44100", "-ac", "1", "-f", "alsa", "-i", "plughw:2,0", "-f", "webm", "pipe:1"]
+        process = subprocess.Popen(command, stdout=subprocess.PIPE)
+
+        # Calculate the number of chunks per second (assuming each chunk is 4096 bytes)
+        chunk_size = 4096  # size of each chunk in bytes
+        bytes_per_second = 44100 * 2  # 44100 samples per second, 2 bytes per sample
+        chunks_per_second = bytes_per_second / chunk_size
+
+        # Calculate the number of chunks to keep in the buffer (last 5 seconds of audio)
+        buffer_size = int(chunks_per_second * 30)
+
+        start_time = time.time()
+        try:
+            for chunk in iter(lambda: process.stdout.read(chunk_size), b""):
+                buffer.append(chunk)
+
+                # If the buffer is too big, remove the oldest chunk
+                if len(buffer) > buffer_size:
+                    buffer.pop(0)
+
+                # If 30 seconds have passed, break the loop
+                if time.time() - start_time >= 30:
+                    start_time = None
+                    break
+
+        except Exception as e:
+            print(f"Error reading audio data: {e}")
+
+# Start the function in a new thread
+threading.Thread(target=start_ffmpeg).start()
+
+
 def login_required(f):
     """
     Decorate routes to require login.
@@ -58,6 +108,30 @@ def apology(reason):
 @login_required
 def index():
     return render_template("index.html")
+
+
+
+@app.route('/print')
+@login_required
+def print_audio():
+    # Continuously print the audio data to the console
+    def generate():
+        while True:
+            for chunk in buffer:
+                yield chunk
+            buffer.clear()
+
+    return Response(generate())
+
+@app.route('/audio')
+@login_required
+def stream_audio():
+    def generate():
+        while True:
+            for chunk in buffer:
+                yield chunk
+
+    return Response(generate(), mimetype='audio/webm')
 
 @app.route("/updates")
 @login_required
@@ -272,6 +346,7 @@ def register():
 @app.route("/getOnce")
 def getOnce():
     username = session["username"]
+    # threading.Thread(target=start_ffmpeg).start()
     (UDValue, LRValue, flipped, led) = loadconfig()
     return jsonify({"username" : username.capitalize(), "led":led})
 
@@ -282,4 +357,6 @@ def logout():
 
 if __name__ == '__main__':
     os.system('./video.sh')
-    app.run(host='0.0.0.0', port=80, debug=False)
+    # threading.Thread(target=start_ffmpeg).start()
+    app.run(host='0.0.0.0', port=8000, debug=False, threaded=True)
+
