@@ -1,6 +1,4 @@
 #!/usr/bin/python3
-
-from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask, redirect, render_template, session, request, jsonify, Response
 from flask_session import Session
 from flask_cors import CORS, cross_origin
@@ -16,6 +14,10 @@ import subprocess
 import sqlite3
 import re
 import threading
+from picamera2 import Picamera2
+from picamera2.encoders import MJPEGEncoder
+from picamera2.outputs import FileOutput
+import io
 
 LRPIN = 12
 UDPIN = 33
@@ -41,9 +43,29 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
+tuningpath = os.path.join(os.getcwd(),"tuning.json")
+tuning = Picamera2.load_tuning_file(tuningpath)
+picam = Picamera2(tuning=tuning)
+config = picam.create_video_configuration()
+picam.configure(config)
+encoder = MJPEGEncoder()
+stream = io.BytesIO()
+output = FileOutput(stream)
+picam.start_encoder(encoder, output)
+picam.start()
+
+
+def generate():
+    while True:
+        stream.seek(0)
+        test = stream.read()
+        stream.seek(0)
+        stream.truncate()
+        yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + test + b'\r\n')
 
 # Create a buffer to store the audio data
 buffer = []
+
 
 def start_ffmpeg():
     process = None
@@ -65,7 +87,7 @@ def start_ffmpeg():
         chunks_per_second = bytes_per_second / chunk_size
 
         # Calculate the number of chunks to keep in the buffer (last 5 seconds of audio)
-        buffer_size = int(chunks_per_second * 30)
+        buffer_size = int(chunks_per_second * 45)
 
         start_time = time.time()
         try:
@@ -77,7 +99,7 @@ def start_ffmpeg():
                     buffer.pop(0)
 
                 # If 30 seconds have passed, break the loop
-                if time.time() - start_time >= 30:
+                if time.time() - start_time >= 45:
                     start_time = None
                     break
 
@@ -104,12 +126,16 @@ def login_required(f):
 def apology(reason):
     return {'error':reason}
 
+@app.route('/video_feed.mjpg')
+@login_required        
+def video_feed():
+    return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+        
 @app.route("/")
 @login_required
 def index():
     return render_template("index.html")
-
-
 
 @app.route('/print')
 @login_required
@@ -356,7 +382,7 @@ def logout():
 	return jsonify({"url":"/login"})
 
 if __name__ == '__main__':
-    os.system('./video.sh')
+    # os.system('./video.sh')
     # threading.Thread(target=start_ffmpeg).start()
     app.run(host='0.0.0.0', port=8000, debug=False, threaded=True)
 
