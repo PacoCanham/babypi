@@ -1,7 +1,5 @@
 #!/usr/bin/python3
-
-from apscheduler.schedulers.background import BackgroundScheduler
-from flask import Flask, redirect, render_template, session, request, jsonify, Response
+from flask import Flask, redirect, render_template, session, request, jsonify, Response, stream_with_context
 from flask_session import Session
 from flask_cors import CORS, cross_origin
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -16,6 +14,11 @@ import subprocess
 import sqlite3
 import re
 import threading
+from libcamera import controls, Transform
+from picamera2 import Picamera2
+from picamera2.encoders import MJPEGEncoder
+from picamera2.outputs import FileOutput
+import io
 
 LRPIN = 12
 UDPIN = 33
@@ -41,52 +44,22 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
+# tuningpath = os.path.join(os.getcwd(),"tuning.json")
+tuningpath = '/home/paco/babypi/flask/tuning.json'
+tuning = Picamera2.load_tuning_file(tuningpath)
+picam = Picamera2(tuning=tuning)
+config = picam.create_video_configuration(main={"size": (1920, 1080)}, controls={"AwbMode": controls.AwbModeEnum.Indoor, "NoiseReductionMode" : controls.draft.NoiseReductionModeEnum.Off, 'FrameDurationLimits': (40000, 40000)})
+## awbmode - indoor
+#from libcamera import controls
+# example : picam.set_controls({"AwbMode": controls.AwbModeEnum.Indoor, "NoiseReductionMode" : controls.draft.NoiseReductionModeEnum.Off})
+# 
 
-# Create a buffer to store the audio data
-buffer = []
-
-def start_ffmpeg():
-    process = None
-    while True:
-        # Clear the buffer
-        if buffer:
-            buffer.clear()
-
-        # Terminate the previous process if it exists
-        if process:
-            process.terminate()
-
-        command = ["ffmpeg", "-re", "-ar", "44100", "-ac", "1", "-f", "alsa", "-i", "plughw:2,0", "-f", "webm", "pipe:1"]
-        process = subprocess.Popen(command, stdout=subprocess.PIPE)
-
-        # Calculate the number of chunks per second (assuming each chunk is 4096 bytes)
-        chunk_size = 4096  # size of each chunk in bytes
-        bytes_per_second = 44100 * 2  # 44100 samples per second, 2 bytes per sample
-        chunks_per_second = bytes_per_second / chunk_size
-
-        # Calculate the number of chunks to keep in the buffer (last 5 seconds of audio)
-        buffer_size = int(chunks_per_second * 30)
-
-        start_time = time.time()
-        try:
-            for chunk in iter(lambda: process.stdout.read(chunk_size), b""):
-                buffer.append(chunk)
-
-                # If the buffer is too big, remove the oldest chunk
-                if len(buffer) > buffer_size:
-                    buffer.pop(0)
-
-                # If 30 seconds have passed, break the loop
-                if time.time() - start_time >= 30:
-                    start_time = None
-                    break
-
-        except Exception as e:
-            print(f"Error reading audio data: {e}")
-
-# Start the function in a new thread
-threading.Thread(target=start_ffmpeg).start()
-
+picam.configure(config)
+encoder = MJPEGEncoder()
+videostream = io.BytesIO()
+output = FileOutput(videostream)
+picam.start_encoder(encoder, output)
+picam.start()
 
 def login_required(f):
     """
@@ -104,34 +77,25 @@ def login_required(f):
 def apology(reason):
     return {'error':reason}
 
+def generateVideo():
+    while True:
+        videostream.seek(0)
+        test = videostream.read()
+        videostream.seek(0)
+        videostream.truncate()
+        yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + test + b'\r\n')
+
+@app.route('/video.mjpg')
+@login_required        
+def video_feed():
+
+    return Response(generateVideo(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+        
 @app.route("/")
 @login_required
 def index():
     return render_template("index.html")
-
-
-
-@app.route('/print')
-@login_required
-def print_audio():
-    # Continuously print the audio data to the console
-    def generate():
-        while True:
-            for chunk in buffer:
-                yield chunk
-            buffer.clear()
-
-    return Response(generate())
-
-@app.route('/audio')
-@login_required
-def stream_audio():
-    def generate():
-        while True:
-            for chunk in buffer:
-                yield chunk
-
-    return Response(generate(), mimetype='audio/webm')
 
 @app.route("/updates")
 @login_required
@@ -246,15 +210,16 @@ def left():
 @app.route("/flip")
 @login_required
 def flip():
+    global config
     (UDValue, LRValue, flipped, led) = loadconfig()
+    picam.stop()
     if not flipped:
-        os.system('killall mjpeg*')
-        os.system('./video.sh vflip')
         flipped = True
     else:
-        os.system('killall mjpeg*')
-        os.system('./video.sh')
         flipped = False
+    config["transform"] = Transform(vflip=flipped)
+    picam.configure(config)
+    picam.start()
     saveconfig(UDValue, LRValue, flipped, led)
     return ('', 204)
 
@@ -355,8 +320,37 @@ def logout():
 	session.clear()
 	return jsonify({"url":"/login"})
 
+@app.route('/audio')
+@login_required
+def stream_audio():
+    def generate():
+        # Define the command to process the audio with low latency options
+        general_options = ['-loglevel', 'warning', '-y', '-fflags', 'nobuffer', '-flags', 'low_delay', '-strict', 'experimental']
+        extras = ['-use_wallclock_as_timestamps', '1']
+        audio_input = ['-f', 'pulse', '-sample_rate', '48000', '-thread_queue_size', '1024', '-i', 'default']
+        audio_codec = ['-b:a', '128000', '-c:a', 'libvorbis']
+        output_options = ['-f', 'webm', 'pipe:1']  # Output to stdout in WebM format
+
+        command = ['ffmpeg'] + extras + general_options + audio_input + audio_codec + output_options
+
+        # Start the ffmpeg process without stdin
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, bufsize=0)  # Set buffer size to 0 for reduced latency
+
+        # Read the output from ffmpeg's stdout and yield as stream
+        while True:
+            output = process.stdout.read(1024)  # Read in smaller chunks for reduced latency
+            if not output:
+                break
+            yield output
+
+        # Wait for the process to finish
+        # process.wait()
+
+        # Check if the process was successful
+
+    return Response(stream_with_context(generate()), mimetype='audio/webm')
+
 if __name__ == '__main__':
-    os.system('./video.sh')
-    # threading.Thread(target=start_ffmpeg).start()
+    # os.system('./video.sh')
     app.run(host='0.0.0.0', port=8000, debug=False, threaded=True)
 
