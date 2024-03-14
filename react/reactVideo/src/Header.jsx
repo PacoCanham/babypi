@@ -11,7 +11,7 @@ import { useEffect } from 'react';
 import { useState } from 'react';
 import VisibilityOutlined from '@mui/icons-material/VisibilityOutlined';
 
-export default function Header() {
+export default function Header({showControls, setShowControls}) {
   const [username, setUsername] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [viewers, setViewers] = useState(1);
@@ -63,10 +63,10 @@ export default function Header() {
     closeMenu()
   };
 
-  const handleLogout = () => {
-    fetch('/logout')
-     .then(response => response.json())
-     .then(data => window.location.assign(data.url))
+  const handleNav = (e) => {
+    e.preventDefault()
+    const url = e.currentTarget.name
+    window.location.assign(url)
   }
 
   function closeMenu(){
@@ -74,13 +74,13 @@ export default function Header() {
   }
 
   return (
-    <Box sx={{ flexGrow: 1, position:"absolute", margin:0, padding:0, width:"100vw", top:0}}>
+    <Box sx={{ flexGrow: 1, position:"absolute", margin:0, padding:0, paddingBottom:5, width:"100vw", top:0, left:0}}>
       <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, textAlign:"start" }}>
             Hello {username}
           </Typography>
-          {temp}°C - <VisibilityOutlined /> {viewers}
+          {temp}°C <VisibilityOutlined /> {viewers}
             <div>
               <IconButton
                 size="large"
@@ -103,8 +103,10 @@ export default function Header() {
                 }}
                 open={Boolean(anchorEl)}
               >
-                <MenuItem onClick={handleLEDs}>Turn LED's {(ledBool)?ON:OFF}</MenuItem>
-                <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                <MenuItem onClick={handleLEDs}>Turn LED's {(ledBool)?"ON":"OFF"}</MenuItem>
+                <MenuItem onClick={()=>setShowControls(!showControls)}>{(showControls)?"Hide":"Show"} Controls</MenuItem>
+                <MenuItem name="/register" onClick={handleNav}>Register</MenuItem>
+                <MenuItem name="/logout" onClick={handleNav}>Logout</MenuItem>
                 <MenuItem onClick={closeMenu}>Close Menu</MenuItem>
               </Menu>
             </div>

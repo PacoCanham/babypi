@@ -12,9 +12,6 @@ export default function CameraButtons() {
             const response = await fetch(url);
         }
         moveCamera();
-       if (e.currentTarget.id == 'flip'){
-            setTimeout(()=>{location.reload()}, 3000);
-        }
     }
 
  return (
