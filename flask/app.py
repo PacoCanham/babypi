@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from flask import Flask, redirect, render_template, session, request, jsonify, Response, stream_with_context
+from flask import Flask, redirect, render_template, session, request, jsonify, Response, stream_with_context, send_from_directory
 from flask_session import Session
 from flask_cors import CORS, cross_origin
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -16,50 +16,58 @@ import re
 import threading
 from libcamera import controls, Transform
 from picamera2 import Picamera2
-from picamera2.encoders import MJPEGEncoder
-from picamera2.outputs import FileOutput
+from picamera2.encoders import MJPEGEncoder, H264Encoder
+from picamera2.outputs import FileOutput, FfmpegOutput
 import io
+import pigpio
 
-LRPIN = 12
-UDPIN = 33
+LRPIN = 18
+UDPIN = 13
 LED_1_PIN = 35
 LED_2_PIN = 37
 
 
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
-GPIO.setup(UDPIN, GPIO.OUT)
-GPIO.setup(LRPIN, GPIO.OUT)
 GPIO.setup(LED_1_PIN, GPIO.OUT)
 GPIO.setup(LED_2_PIN, GPIO.OUT)
-UD = GPIO.PWM(UDPIN, 50)
-LR = GPIO.PWM(LRPIN, 50)
-UD.start(0)
-LR.start(0)
+pwm = pigpio.pi()
+pwm.set_mode(UDPIN, pigpio.OUTPUT)
+pwm.set_mode(LRPIN, pigpio.OUTPUT)
+pwm.set_PWM_frequency(UDPIN, 50)
+pwm.set_PWM_frequency(LRPIN, 50)
+HLS_DIR = '/home/paco/babypi/flask/static/'
 
 vidlog = ""
-app = Flask(__name__)
+app = Flask(__name__, static_folder=HLS_DIR, static_url_path='')
 cors = CORS(app)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-# tuningpath = os.path.join(os.getcwd(),"tuning.json")
-tuningpath = '/home/paco/babypi/flask/tuning.json'
+class StreamingOutput(io.BufferedIOBase):
+    def __init__(self):
+        self.frame = None
+        self.condition = threading.Condition()
+
+    def write(self, buf):
+        with self.condition:
+            self.frame = buf
+            self.condition.notify_all()
+
+tuningpath = os.path.join(os.getcwd(),"tuning.json")
+# tuningpath = '/home/paco/babypi/flask/tuning.json'
 tuning = Picamera2.load_tuning_file(tuningpath)
 picam = Picamera2(tuning=tuning)
 config = picam.create_video_configuration(main={"size": (1920, 1080)}, controls={"AwbMode": controls.AwbModeEnum.Indoor, "NoiseReductionMode" : controls.draft.NoiseReductionModeEnum.Off, 'FrameDurationLimits': (40000, 40000)})
-## awbmode - indoor
-#from libcamera import controls
-# example : picam.set_controls({"AwbMode": controls.AwbModeEnum.Indoor, "NoiseReductionMode" : controls.draft.NoiseReductionModeEnum.Off})
-# 
-
 picam.configure(config)
 encoder = MJPEGEncoder()
-videostream = io.BytesIO()
-output = FileOutput(videostream)
-picam.start_encoder(encoder, output)
+# videostream = io.BytesIO()
+output = StreamingOutput()
+picam.start_encoder(encoder, FileOutput(output))
+# picam.start_recording(MJPEGEncoder(), FileOutput(output))
 picam.start()
+
 
 def login_required(f):
     """
@@ -79,19 +87,17 @@ def apology(reason):
 
 def generateVideo():
     while True:
-        videostream.seek(0)
-        test = videostream.read()
-        videostream.seek(0)
-        videostream.truncate()
-        yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + test + b'\r\n')
+        with output.condition:
+            output.condition.wait()
+            frame = output.frame
+            yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 @app.route('/video.mjpg')
 @login_required        
 def video_feed():
-
-    return Response(generateVideo(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
+    return Response(stream_with_context(generateVideo()), mimetype='multipart/x-mixed-replace; boundary=frame')
         
+
 @app.route("/")
 @login_required
 def index():
@@ -139,17 +145,13 @@ def after_request(response):
 @login_required
 def up():
     (UDValue, LRValue, flipped, led) = loadconfig()
-    UD.ChangeDutyCycle(UDValue) #to ensure movement
-    sleep(0.1)
     if (flipped):
-        if UDValue < 12.5 :
-            UDValue += 0.25
+        if UDValue < 2500 :
+            UDValue += 50
     else:
-        if UDValue > 3.0 :
-            UDValue -= 0.25
-    UD.ChangeDutyCycle(UDValue) #to ensure movement
-    sleep(0.5)
-    UD.ChangeDutyCycle(0) #to stop random jitters
+        if UDValue > 500 :
+            UDValue -= 50
+    pwm.set_servo_pulsewidth(UDPIN, UDValue) 
     saveconfig(UDValue, LRValue, flipped, led)
     return ('', 204)
 
@@ -157,17 +159,13 @@ def up():
 @login_required
 def down():
     (UDValue, LRValue, flipped, led) = loadconfig()
-    UD.ChangeDutyCycle(UDValue) #to ensure movement
-    sleep(0.1)
     if (flipped):
-        if UDValue > 3.0 :
-            UDValue -= 0.25
+        if UDValue > 500 :
+            UDValue -= 50
     else:
-        if UDValue < 12.5 :
-            UDValue += 0.25
-    UD.ChangeDutyCycle(UDValue) #to ensure movement
-    sleep(0.5)
-    UD.ChangeDutyCycle(0) #to stop random jitters
+        if UDValue < 2500 :
+            UDValue += 50
+    pwm.set_servo_pulsewidth(UDPIN, UDValue) 
     saveconfig(UDValue, LRValue, flipped, led)
     return ('', 204)
 
@@ -175,17 +173,13 @@ def down():
 @login_required
 def right():
     (UDValue, LRValue, flipped, led) = loadconfig()
-    LR.ChangeDutyCycle(LRValue) #to ensure movement
-    sleep(0.1)
     if (flipped):
-        if LRValue < 12.5 :
-            LRValue += 0.25
-    else :
-        if LRValue > 3.0 :
-            LRValue -= 0.25
-    LR.ChangeDutyCycle(LRValue) #to ensure movement
-    sleep(0.5)
-    LR.ChangeDutyCycle(0) #to stop random jitters
+        if LRValue < 2500 :
+            LRValue += 50
+    else:
+        if LRValue > 500 :
+            LRValue -= 50
+    pwm.set_servo_pulsewidth(LRPIN, LRValue) 
     saveconfig(UDValue, LRValue, flipped, led)
     return ('', 204)
 
@@ -193,17 +187,13 @@ def right():
 @login_required
 def left():
     (UDValue, LRValue, flipped, led) = loadconfig()
-    LR.ChangeDutyCycle(LRValue) #to ensure movement
-    sleep(0.1)
     if (flipped):
-        if LRValue > 3.0 :
-            LRValue -= 0.25
-    else :
-        if LRValue < 12.5 :
-            LRValue += 0.25
-    LR.ChangeDutyCycle(LRValue) #to ensure movement
-    sleep(0.5)
-    LR.ChangeDutyCycle(0) #to stop random jitters
+        if LRValue > 500 :
+            LRValue -= 50
+    else:
+        if LRValue < 2500 :
+            LRValue += 50
+    pwm.set_servo_pulsewidth(LRPIN, LRValue) 
     saveconfig(UDValue, LRValue, flipped, led)
     return ('', 204)
 
@@ -320,37 +310,92 @@ def logout():
 	session.clear()
 	return jsonify({"url":"/login"})
 
-@app.route('/audio')
-@login_required
-def stream_audio():
-    def generate():
-        # Define the command to process the audio with low latency options
-        general_options = ['-loglevel', 'warning', '-y', '-fflags', 'nobuffer', '-flags', 'low_delay', '-strict', 'experimental']
-        extras = ['-use_wallclock_as_timestamps', '1']
-        audio_input = ['-f', 'pulse', '-sample_rate', '48000', '-thread_queue_size', '1024', '-i', 'default']
-        audio_codec = ['-b:a', '128000', '-c:a', 'libvorbis']
-        output_options = ['-f', 'webm', 'pipe:1']  # Output to stdout in WebM format
 
-        command = ['ffmpeg'] + extras + general_options + audio_input + audio_codec + output_options
+# picam2 = Picamera2()
+# video_config = picam2.create_video_configuration()
+# picam2.configure(video_config)
 
-        # Start the ffmpeg process without stdin
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, bufsize=0)  # Set buffer size to 0 for reduced latency
+# encoder = H264Encoder(10000000)
 
-        # Read the output from ffmpeg's stdout and yield as stream
-        while True:
-            output = process.stdout.read(1024)  # Read in smaller chunks for reduced latency
-            if not output:
-                break
-            yield output
+# output = FfmpegOutput('-ac 1 -f webm pipe:1',audio_codec="libopus",audio_bitrate='96k', audio_device='plughw:2,0', audio=True)
+# #movflags frag_keyframe+empty_moov 
+# # print(output.stdout)
+
+# picam2.start_recording(encoder, output)
+# @app.route("/test.webm")
+# def testmp4():
+#     def generatemp4():
+#         # time.sleep(10)
+#         while True:
+#             yield(output.stdout)
+#     return Response(stream_with_context(generatemp4()), mimetype='video/webm')
+
+
+
+
+playing = False
+# @app.route('/audio/old')
+# @login_required
+# def stream_audio():
+#     audio_output = StreamingOutput()
+#     def generate():
+#         # global playing
+#         # if not playing:
+#         # Define the command to process the audio with low latency options
+#             #general_options = ['-loglevel', 'warning', '-y', '-fflags', 'nobuffer', '-flags', 'low_delay', '-strict', 'experimental']
+#             # extras = ['-use_wallclock_as_timestamps', '1']
+#             #audio_input = ['-f', 'pulse', '-sample_rate', '44100', '-thread_queue_size', '1024', '-i', 'default']
+#             #audio_codec = ['-b:a', '128000', '-c:a', 'libvorbis']
+#             #output_options = ['-f', 'webm', 'pipe:1']  # Output to stdout in WebM format
+#             # video_input = ['-use_wallclock_as_timestamps', '1',
+#             #            '-thread_queue_size', '64',  # necessary to prevent warnings
+#             #            '-i', '/dev/video0']
+#             # video_codec = ['-c:v', 'copy']
+
+#             #command = ['ffmpeg'] + general_options + audio_input + audio_codec + output_options
+#         command = ['ffmpeg', '-f', 'alsa', '-i', 'plughw:2,0', '-ac',
+#             '1', '-c:a', 'libopus', '-b:a', '32k', '-f', 'webm', '-content_type', "'audio/webm'", 'pipe:1']
+
+#             # Start the ffmpeg process without stdin
+#         process = subprocess.Popen(command, stdout=subprocess.PIPE, bufsize=0)  # Set buffer size to 0 for reduced latency
+#             # playing = True
+            
+#         # Read the output from ffmpeg's stdout and yield as stream
+#         while True:
+#             audio_output.write(process.stdout.read(1024))  # Read in smaller chunks for reduced latency
+#             # if not output:
+#             #     break
+#             yield audio_output.frame
 
         # Wait for the process to finish
         # process.wait()
 
         # Check if the process was successful
 
-    return Response(stream_with_context(generate()), mimetype='audio/webm')
+    # return Response(stream_with_context(generate()), mimetype='audio/webm')
+
+
+@app.route('/audio')
+def serve_hls():
+    global playing
+    if playing == False:
+        # command = ['ffmpeg', '-f', 'alsa','-i', 'plughw:2,0', '-ac', '1', '-c:a',
+        # 'aac', '-b:a', '32K', '-f', 'hls', '-hls_time', '1', '-hls_list_size', '3', '-tune', 'zerolatency', '-hls_flags', 'delete_segments', './static/stream.m3u8']
+        # audioprocess = subprocess.Popen(command, bufsize=0)  # Set buffer size to 0 for reduced latency
+        command = [
+    'ffmpeg', '-f', 'alsa', '-i', 'plughw:2,0',
+    '-ac', '1', '-c:a', 'aac', '-b:a', '32K',
+    '-f', 'hls', '-hls_time', '0.5', '-hls_list_size', '10',
+    '-hls_flags', 'delete_segments', '-tune', 'zerolatency', './static/stream.m3u8'
+        ]
+        audioprocess = subprocess.Popen(command, bufsize=0)
+
+
+        playing = True
+    return send_from_directory(app.static_folder, 'stream.m3u8')
 
 if __name__ == '__main__':
-    # os.system('./video.sh')
-    app.run(host='0.0.0.0', port=8000, debug=False, threaded=True)
+    app.run(host='0.0.0.0', port=8000, debug=False, threaded=True, ssl_context=('cert.pem', 'key.pem'))
+ #ssl_context=('cert.pem', 'key.pem'))
+    # ssl_context='adhoc'
 

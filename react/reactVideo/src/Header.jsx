@@ -60,12 +60,13 @@ export default function Header({showControls, setShowControls}) {
 
   const handleLEDs = () => {
     fetch('/led_on_off')
+    setLedBool(!ledBool)
     closeMenu()
   };
 
   const handleNav = (e) => {
     e.preventDefault()
-    const url = e.currentTarget.name
+    const url = e.currentTarget.id
     window.location.assign(url)
   }
 
@@ -103,10 +104,10 @@ export default function Header({showControls, setShowControls}) {
                 }}
                 open={Boolean(anchorEl)}
               >
-                <MenuItem onClick={handleLEDs}>Turn LED's {(ledBool)?"ON":"OFF"}</MenuItem>
-                <MenuItem onClick={()=>setShowControls(!showControls)}>{(showControls)?"Hide":"Show"} Controls</MenuItem>
-                <MenuItem name="/register" onClick={handleNav}>Register</MenuItem>
-                <MenuItem name="/logout" onClick={handleNav}>Logout</MenuItem>
+                <MenuItem onClick={handleLEDs}>Turn LED's {(ledBool)?"Off":"On"}</MenuItem>
+                <MenuItem onClick={()=>{setShowControls(!showControls);closeMenu()}}>{(showControls)?"Hide":"Show"} Controls</MenuItem>
+                <MenuItem id="/register" onClick={handleNav}>Register</MenuItem>
+                <MenuItem id="/logout" onClick={handleNav}>Logout</MenuItem>
                 <MenuItem onClick={closeMenu}>Close Menu</MenuItem>
               </Menu>
             </div>
