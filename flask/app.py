@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!../../.babycamvenv/bin/python3
 from flask import Flask, redirect, render_template, session, request, jsonify, Response, stream_with_context, send_from_directory
 from flask_session import Session
 from flask_cors import CORS, cross_origin
@@ -6,6 +6,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 from time import sleep
 import time
+from datetime import datetime,timedelta
 from gettemp import gettemp
 import RPi.GPIO as GPIO
 import os
@@ -20,6 +21,9 @@ from picamera2.encoders import MJPEGEncoder, H264Encoder
 from picamera2.outputs import FileOutput, FfmpegOutput
 import io
 import pigpio
+import vlc
+
+
 
 LRPIN = 18
 UDPIN = 13
@@ -45,6 +49,8 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
+user_activity_log = {}
+
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
         self.frame = None
@@ -54,6 +60,35 @@ class StreamingOutput(io.BufferedIOBase):
         with self.condition:
             self.frame = buf
             self.condition.notify_all()
+
+class CustomAudioPlayer:
+    def __init__(self):
+        self.instance = vlc.Instance()
+        self.player = self.instance.media_player_new()
+        self.playing = False
+        self.current_track = None
+
+    def play(self, track):
+        if not self.playing:
+            self.playing = True
+            self.current_track = self.instance.media_new(track)
+            self.player.set_media(self.current_track)
+            self.player.play(-1)
+
+    def pause(self):
+        if self.playing:
+            self.playing = False
+            self.player.pause()
+
+    def resume(self):
+        if not self.playing and self.current_track:
+            self.playing = True
+            self.player.play(-1)
+
+    def stop(self):
+        if self.playing:
+            self.playing = False
+            self.player.stop()
 
 tuningpath = os.path.join(os.getcwd(),"tuning.json")
 # tuningpath = '/home/paco/babypi/flask/tuning.json'
@@ -67,14 +102,9 @@ output = StreamingOutput()
 picam.start_encoder(encoder, FileOutput(output))
 # picam.start_recording(MJPEGEncoder(), FileOutput(output))
 picam.start()
-
+noise_player = CustomAudioPlayer()
 
 def login_required(f):
-    """
-    Decorate routes to require login.
-
-    http://flask.pocoo.org/docs/0.12/patterns/viewdecorators/
-    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if session.get("user_id") is None:
@@ -82,56 +112,16 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def apology(reason):
-    return {'error':reason}
-
-def generateVideo():
-    while True:
-        with output.condition:
-            output.condition.wait()
-            frame = output.frame
-            yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-
-@app.route('/video.mjpg')
-@login_required        
-def video_feed():
-    return Response(stream_with_context(generateVideo()), mimetype='multipart/x-mixed-replace; boundary=frame')
-        
-
 @app.route("/")
 @login_required
 def index():
     return render_template("index.html")
 
-@app.route("/updates")
-@login_required
-def updates():
-    ip_pattern = re.compile(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})')
-    viewers = 0
-    iplist = set()
-    with open ("./logs/ip.log", "r") as file:
-        for line in file:
-            if "GET" in line:
-                ipadd = ip_pattern.search(line)
-                if ipadd:
-                    ipadd = ipadd.group()
-                    if ipadd not in iplist: 
-                        iplist.add(ipadd)
-            elif "Errno" in line:
-                ipadd = ip_pattern.search(line)
-                if ipadd:
-                    ipadd = ipadd.group()
-                    if ipadd in iplist:
-                        iplist.remove(ipadd)
-    viewers = len(iplist)
-    temp = gettemp()
-    return jsonify({'viewers' : viewers, "temp":temp})
-
-@app.route("/data")
-@login_required
-def data():
-    (UDValue, LRValue, flipped, led) = loadconfig()
-    return f"App Loaded<hr>LRPIN : {LRPIN}<br>UDPIN : {UDPIN}<br>UDValue : {UDValue}<br>LRValue : {LRValue}<br>Flipped : {flipped}<hr>"
+@app.before_request
+def update_user_count():
+    if "user_id" in session:
+        user_id = session["user_id"]
+        user_activity_log[user_id] = datetime.now()
 
 @app.after_request
 def after_request(response):
@@ -140,6 +130,42 @@ def after_request(response):
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
     return response
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    session.clear()
+    if request.method == "POST":
+        conn = sqlite3.connect("babycam.db")
+        cur = conn.cursor()
+        data = request.json
+        username = data.get("username").lower()
+        password = data.get("password")
+        if not username:
+            return apology("must provide username")
+        elif not password:
+            return apology("must provide password")
+        cur.execute("SELECT * FROM users WHERE username = ?", (username,))
+        rows = cur.fetchall()
+        if len(rows) != 1 or not check_password_hash(rows[0][2], password):
+            return apology("invalid username and/or password")
+        session["user_id"] = rows[0][0]
+        session["username"] = rows[0][1]
+        user_id = session["user_id"]
+        conn.close()
+        return {'url':'/'}
+    else:
+        return render_template("login.html")
+
+def apology(reason):
+    return {'error':reason}
+
+@app.route("/updates")
+@login_required
+def updates():
+    timeout = timedelta(minutes=1)
+    active_users = sum(1 for timestamp in user_activity_log.values() if timestamp > datetime.now() - timeout)
+    temp = gettemp()
+    return jsonify({'viewers' : active_users, "temp":temp})
 
 @app.route("/up")
 @login_required
@@ -241,31 +267,6 @@ def saveconfig(UDValue, LRValue, flipped, led):
         data = {"UDValue" : UDValue,"LRValue" : LRValue,"flipped" : bool(flipped),"led":bool(led)}
         json.dump(data, config)
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    session.clear()
-    if request.method == "POST":
-        conn = sqlite3.connect("babycam.db")
-        cur = conn.cursor()
-        data = request.json
-        username = data.get("username").lower()
-        password = data.get("password")
-        if not username:
-            return apology("must provide username")
-        elif not password:
-            return apology("must provide password")
-        cur.execute("SELECT * FROM users WHERE username = ?", (username,))
-        rows = cur.fetchall()
-        if len(rows) != 1 or not check_password_hash(rows[0][2], password):
-            return apology("invalid username and/or password")
-        session["user_id"] = rows[0][0]
-        session["username"] = rows[0][1]
-        user_id = session["user_id"]
-        conn.close()
-        return {'url':'/'}
-    else:
-        return render_template("login.html")
-
 @app.route("/register", methods=["GET", "POST"])
 @login_required
 def register():
@@ -301,101 +302,90 @@ def register():
 @app.route("/getOnce")
 def getOnce():
     username = session["username"]
-    # threading.Thread(target=start_ffmpeg).start()
     (UDValue, LRValue, flipped, led) = loadconfig()
     return jsonify({"username" : username.capitalize(), "led":led})
 
 @app.route("/logout")
 def logout():
-	session.clear()
-	return jsonify({"url":"/login"})
+    session.clear()
+    return jsonify({'url' : '/login'})
 
+def generateVideo():
+    while True:
+        with output.condition:
+            output.condition.wait()
+            frame = output.frame
+            yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
-# picam2 = Picamera2()
-# video_config = picam2.create_video_configuration()
-# picam2.configure(video_config)
-
-# encoder = H264Encoder(10000000)
-
-# output = FfmpegOutput('-ac 1 -f webm pipe:1',audio_codec="libopus",audio_bitrate='96k', audio_device='plughw:2,0', audio=True)
-# #movflags frag_keyframe+empty_moov 
-# # print(output.stdout)
-
-# picam2.start_recording(encoder, output)
-# @app.route("/test.webm")
-# def testmp4():
-#     def generatemp4():
-#         # time.sleep(10)
-#         while True:
-#             yield(output.stdout)
-#     return Response(stream_with_context(generatemp4()), mimetype='video/webm')
-
-
-
+@app.route('/video.mjpg')
+@login_required        
+def video_feed():
+    return Response(stream_with_context(generateVideo()), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 playing = False
-# @app.route('/audio/old')
-# @login_required
-# def stream_audio():
-#     audio_output = StreamingOutput()
-#     def generate():
-#         # global playing
-#         # if not playing:
-#         # Define the command to process the audio with low latency options
-#             #general_options = ['-loglevel', 'warning', '-y', '-fflags', 'nobuffer', '-flags', 'low_delay', '-strict', 'experimental']
-#             # extras = ['-use_wallclock_as_timestamps', '1']
-#             #audio_input = ['-f', 'pulse', '-sample_rate', '44100', '-thread_queue_size', '1024', '-i', 'default']
-#             #audio_codec = ['-b:a', '128000', '-c:a', 'libvorbis']
-#             #output_options = ['-f', 'webm', 'pipe:1']  # Output to stdout in WebM format
-#             # video_input = ['-use_wallclock_as_timestamps', '1',
-#             #            '-thread_queue_size', '64',  # necessary to prevent warnings
-#             #            '-i', '/dev/video0']
-#             # video_codec = ['-c:v', 'copy']
-
-#             #command = ['ffmpeg'] + general_options + audio_input + audio_codec + output_options
-#         command = ['ffmpeg', '-f', 'alsa', '-i', 'plughw:2,0', '-ac',
-#             '1', '-c:a', 'libopus', '-b:a', '32k', '-f', 'webm', '-content_type', "'audio/webm'", 'pipe:1']
-
-#             # Start the ffmpeg process without stdin
-#         process = subprocess.Popen(command, stdout=subprocess.PIPE, bufsize=0)  # Set buffer size to 0 for reduced latency
-#             # playing = True
-            
-#         # Read the output from ffmpeg's stdout and yield as stream
-#         while True:
-#             audio_output.write(process.stdout.read(1024))  # Read in smaller chunks for reduced latency
-#             # if not output:
-#             #     break
-#             yield audio_output.frame
-
-        # Wait for the process to finish
-        # process.wait()
-
-        # Check if the process was successful
-
-    # return Response(stream_with_context(generate()), mimetype='audio/webm')
-
-
 @app.route('/audio')
 def serve_hls():
     global playing
     if playing == False:
-        # command = ['ffmpeg', '-f', 'alsa','-i', 'plughw:2,0', '-ac', '1', '-c:a',
-        # 'aac', '-b:a', '32K', '-f', 'hls', '-hls_time', '1', '-hls_list_size', '3', '-tune', 'zerolatency', '-hls_flags', 'delete_segments', './static/stream.m3u8']
-        # audioprocess = subprocess.Popen(command, bufsize=0)  # Set buffer size to 0 for reduced latency
-        command = [
-    'ffmpeg', '-f', 'alsa', '-i', 'plughw:2,0',
-    '-ac', '1', '-c:a', 'aac', '-b:a', '32K',
-    '-f', 'hls', '-hls_time', '0.5', '-hls_list_size', '10',
-    '-hls_flags', 'delete_segments', '-tune', 'zerolatency', './static/stream.m3u8'
-        ]
-        audioprocess = subprocess.Popen(command, bufsize=0)
-
-
-        playing = True
+        command = ['ffmpeg', '-f', 'alsa', '-i', 'plughw:1,0', '-ac', '1', '-c:a', 'aac', '-b:a', '32k', '-f', 'hls',
+                  '-hls_time', '0.5', '-hls_list_size', '10', '-hls_flags', 'delete_segments', '-tune', 'zerolatency',
+                  '-fflags', 'nobuffer', '-probesize', '32', '-analyzeduration', '1', '-flags', 'low_delay',
+                  '-vf', 'setpts=0', './static/stream.m3u8']
+        try:
+            subprocess.check_output(command, stderr=subprocess.STDOUT,  bufsize=0)
+            playing = True
+        except subprocess.CalledProcessError:
+            # Handle the exception or perform other actions
+            pass
+        # audioprocess = subprocess.Popen(command, bufsize=0)
     return send_from_directory(app.static_folder, 'stream.m3u8')
 
+noiselist = []
+for filename in os.listdir(f'{HLS_DIR}/noise/'):
+    if os.path.isfile(f'{HLS_DIR}/noise/{filename}'):
+        noiselist.append(filename)
+
+@app.route('/get_noiselist')
+def get_noiselist():
+    return jsonify({'noiselist':noiselist})
+
+playing == None
+@app.route('/change_noise/<noisename>')
+def change_noise(noisename=noiselist[0]):
+    noise_player.stop()
+    noise_player.play(f'{HLS_DIR}/noise/{noisename}')
+    return "ok"
+
+@app.route('/noise')
+def nosie():
+    global playing
+    if playing == None:
+        change_noise()
+        playing = True
+    elif playing:
+        noise_player.pause()
+        playing = False
+    else :
+        noise_player.resume()
+        playing = True
+
+@app.route('/resume_noise')
+def resume_noise():
+    noise_player.resume()
+    return "ok"
+
+@app.route('/pause_noise')
+def pause_noise():
+    noise_player.pause()
+    return "ok"
+
+@app.route('/stop_noise')
+def stop_noise():
+    noise_player.pause()
+    return "ok"
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000, debug=False, threaded=True, ssl_context=('cert.pem', 'key.pem'))
+    app.run(host='0.0.0.0', port=8000, debug=False, threaded=True , ssl_context=('server.crt', 'server.key'))
  #ssl_context=('cert.pem', 'key.pem'))
     # ssl_context='adhoc'
 

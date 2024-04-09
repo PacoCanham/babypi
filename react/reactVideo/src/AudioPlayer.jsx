@@ -1,86 +1,43 @@
-  // import React, { useEffect, useRef } from 'react';
-  // import Hls from 'hls.js'; // Import hls.js
-
-  // const AudioPlayer = ({ streamUrl }) => {
-  //   const audioRef = useRef(null);
-
-  //   useEffect(() => {
-  //     const audio = audioRef.current;
-  //     if (!audio) return;
-
-  //     // Initialize hls.js
-  //     if (Hls.isSupported()) {
-  //       const hls = new Hls();
-  //       hls.loadSource(streamUrl);
-  //       hls.attachMedia(audio);
-  //     } else if (audio.canPlayType('application/vnd.apple.mpegurl')) {
-  //       // For Safari, use native HLS support
-  //       audio.src = streamUrl;
-  //     } else {
-  //       console.error('HLS is not supported in this browser.');
-  //     }
-
-
-  //   const handleCanPlayThrough = () => {
-  //   // Seek to a position slightly before the end
-  //       const seekTime = Math.max(audio.duration - 1, 0); // Seek 2 seconds before the end
-  //       audio.currentTime = seekTime;
-  //       audio.play().catch((error) => console.error('Error playing audio:', error));
-  //   };
-
-      
-
-
-
-
-
-
-
-
-
-
-
-  //     audio.addEventListener('canplaythrough', handleCanPlayThrough);
-
-  //     // Cleanup event listener
-  //     return () => {
-  //       audio.removeEventListener('canplaythrough', handleCanPlayThrough);
-  //     };
-  //   }, [streamUrl]);
-
-  //   return (
-  //     <audio ref={audioRef} controls preload="none">
-  //       {/* Use the HLS source */}
-  //       <source src={streamUrl} type="application/x-mpegURL" />
-  //       Your browser does not support the audio element.
-  //     </audio>
-  //   );
-  // };
-
-  // export default AudioPlayer;
-
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import ReactHlsPlayer from 'react-hls-player';
 
 const AudioPlayer = ({ streamUrl }) => {
+  const playerRef = useRef(null);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (playerRef.current && playerRef.current.hls) {
+        const hls = playerRef.current.hls;
+        const liveEdge = hls.liveSyncPosition;
+        const currentTime = playerRef.current.video.currentTime;
+
+        if (liveEdge - currentTime > 3) {
+          playerRef.current.video.currentTime = liveEdge;
+        }
+      }
+    }, 1000); // Check every second
+
+    return () => clearInterval(intervalId); // Clean up on unmount
+  }, []);
+
   return (
     <ReactHlsPlayer
+      playerRef={playerRef}
       src={streamUrl}
-      autoPlay={false} // Set to true if you want autoplay
-      controls={true} // Show playback controls
+      autoPlay={true} // Autoplay is enabled
+      controls={true} // Playback controls are shown
       width="100%"
-      height="5%"
+      height="15px"
+      startPosition={-1}
       hlsConfig={{
-        maxLoadingDelay: 4,
-        minAutoBitrate: 0,
-        lowLatencyMode: true,
-        backBufferLength: 5,
-        liveSyncDurationCount: 1,
-        hls_time: 0.5
+        maxLoadingDelay: 2, // Align with FFmpeg's low latency settings
+        minAutoBitrate: 0, // No minimum bitrate, allowing for adaptive bitrate
+        lowLatencyMode: true, // Enable low latency mode
+        maxBufferLength: 0.5, // Set buffer length to 0.5s to match FFmpeg's segment time
+        liveSyncDurationCount: 1, // Sync with the latest segment for low latency
       }}
     />
   );
 };
 
 export default AudioPlayer;
-

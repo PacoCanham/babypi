@@ -22,7 +22,8 @@
     "react-h5-audio-player": "^3.9.1",
     "react-hls-player": "^3.0.7",
     "react-player": "^2.15.1",
-    "react-web-notification": "^0.8.0"
+    "react-web-notification": "^0.8.0",
+    "video.js": "^8.10.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",
