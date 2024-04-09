@@ -11,12 +11,13 @@ import { useEffect } from 'react';
 import { useState } from 'react';
 import VisibilityOutlined from '@mui/icons-material/VisibilityOutlined';
 
-export default function Header({showControls, setShowControls}) {
+export default function Header({showControls, setShowControls, showNoise, setShowNoise}) {
   const [username, setUsername] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [viewers, setViewers] = useState(1);
   const [ledBool, setLedBool] = useState(true)
   const [temp, setTemp] = useState(null)
+
 
   // get username and viewers on launch
   useEffect(()=>{
@@ -106,6 +107,7 @@ export default function Header({showControls, setShowControls}) {
               >
                 <MenuItem onClick={handleLEDs}>Turn LED's {(ledBool)?"Off":"On"}</MenuItem>
                 <MenuItem onClick={()=>{setShowControls(!showControls);closeMenu()}}>{(showControls)?"Hide":"Show"} Controls</MenuItem>
+                <MenuItem onClick={()=>{setShowNoise(!showNoise);closeMenu()}}>{(showNoise)?"Hide":"Show"} Noise Player</MenuItem>
                 <MenuItem id="/register" onClick={handleNav}>Register</MenuItem>
                 <MenuItem id="/logout" onClick={handleNav}>Logout</MenuItem>
                 <MenuItem onClick={closeMenu}>Close Menu</MenuItem>

@@ -1,4 +1,7 @@
 # Byte-compiled / optimized / DLL files
+*.ts
+*.m3u8
+noise/
 __pycache__/
 *.py[cod]
 *$py.class

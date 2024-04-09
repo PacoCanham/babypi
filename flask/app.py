@@ -63,7 +63,7 @@ class StreamingOutput(io.BufferedIOBase):
 
 class CustomAudioPlayer:
     def __init__(self):
-        self.instance = vlc.Instance()
+        self.instance = vlc.Instance('--input-repeat=-1')
         self.player = self.instance.media_player_new()
         self.playing = False
         self.current_track = None
@@ -73,7 +73,7 @@ class CustomAudioPlayer:
             self.playing = True
             self.current_track = self.instance.media_new(track)
             self.player.set_media(self.current_track)
-            self.player.play(-1)
+            self.player.play()
 
     def pause(self):
         if self.playing:
@@ -83,12 +83,13 @@ class CustomAudioPlayer:
     def resume(self):
         if not self.playing and self.current_track:
             self.playing = True
-            self.player.play(-1)
+            self.player.play()
 
     def stop(self):
         if self.playing:
             self.playing = False
             self.player.stop()
+
 
 tuningpath = os.path.join(os.getcwd(),"tuning.json")
 # tuningpath = '/home/paco/babypi/flask/tuning.json'
@@ -345,29 +346,49 @@ for filename in os.listdir(f'{HLS_DIR}/noise/'):
     if os.path.isfile(f'{HLS_DIR}/noise/{filename}'):
         noiselist.append(filename)
 
-@app.route('/get_noiselist')
-def get_noiselist():
-    return jsonify({'noiselist':noiselist})
+noise_started = False
+noise_paused = False
+playstate = False
+if(noise_started and not noise_paused):
+    playstate = True
+elif(noise_started and noise_paused):
+    playstate = False
+else :
+    playstate = False
 
-playing == None
+noise_track = noiselist[0]
+
+@app.route('/noiselist')
+def get_noiselist():
+    return jsonify({'noiselist':noiselist, "playstate":playstate, "trackname":noise_track})
+
 @app.route('/change_noise/<noisename>')
-def change_noise(noisename=noiselist[0]):
-    noise_player.stop()
-    noise_player.play(f'{HLS_DIR}/noise/{noisename}')
+def change_noise(noisename):
+    global noise_track
+    if noisename in noiselist:
+        noise_track = noisename
+        print(f"track changed to {noise_track}")
+    else :
+        print(f"track change failed {noise_track}")
+    if playing:
+        noise_player.stop()
+        noise_player.play(f'{HLS_DIR}/noise/{noise_track}')
+        print(f"continuing to play {HLS_DIR}/noise/{noise_track}")
     return "ok"
 
 @app.route('/noise')
 def nosie():
     global playing
-    if playing == None:
-        change_noise()
+    if noise_started == False:
+        noise_player.play(f'{HLS_DIR}/noise/{noise_track}')
         playing = True
-    elif playing:
+    elif noise_started and not noise_paused:
         noise_player.pause()
         playing = False
-    else :
+    elif noise_started and noise_paused:
         noise_player.resume()
         playing = True
+    return "ok"
 
 @app.route('/resume_noise')
 def resume_noise():
