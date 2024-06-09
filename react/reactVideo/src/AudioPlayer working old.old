@@ -1,0 +1,37 @@
+import React from 'react';
+import Hls from 'hls.js';
+
+class AudioPlayer extends React.Component {
+  constructor(props) {
+    super(props);
+    this.videoRef = React.createRef();
+  }
+
+  componentDidMount() {
+    // Check if HLS is supported by the browser
+    if (Hls.isSupported()) {
+      const hls = new Hls();
+      const video = this.videoRef.current;
+
+      // Bind them together
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MEDIA_ATTACHED, function () {
+        console.log("video and hls.js are now bound together !");
+        hls.loadSource("/audio"); // load your stream.m3u8 file here
+        hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+          console.log("manifest loaded, found " + data.levels.length + " quality level");
+        });
+      });
+    }
+  }
+
+  render() {
+    return (
+      <audio ref={this.videoRef}>
+        Your browser does not support the audio tag.
+      </audio>
+    );
+  }
+}
+
+export default AudioPlayer;

@@ -1,0 +1,68 @@
+import React, { useEffect, useRef, useState } from 'react';
+import Hls from 'hls.js';
+
+const AudioPlayer = ({ src }) => {
+  const audioRef = useRef(null);
+  const [hlsInstance, setHlsInstance] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    const hls = new Hls({
+      liveSyncDurationCount: 1,
+      maxBufferLength: 0.5, // Set buffer length to 0.5s to match FFmpeg's segment time
+    });
+    setHlsInstance(hls);
+
+    if (Hls.isSupported() && audioRef.current) {
+      hls.loadSource(src);
+      hls.attachMedia(audioRef.current);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        audioRef.current.play();
+      });
+    }
+
+    return () => {
+      hls.destroy();
+    };
+  }, [src]);
+
+  const togglePlayStop = () => {
+    if (isPlaying) {
+      // Stop functionality
+      if (hlsInstance) {
+        hlsInstance.detachMedia();
+        hlsInstance.destroy();
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current.currentTime = 0;
+        }
+      }
+    } else {
+      // Play functionality
+      if (audioRef.current) {
+        const newHls = new Hls({
+          maxBufferLength: 0.5,
+        });
+        setHlsInstance(newHls);
+        newHls.loadSource(src);
+        newHls.attachMedia(audioRef.current);
+        newHls.on(Hls.Events.MANIFEST_PARSED, () => {
+          audioRef.current.play();
+        });
+      }
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  return (
+    <div>
+      <audio ref={audioRef} />
+      <button onClick={togglePlayStop}>
+        {isPlaying ? 'Stop' : 'Listen'}
+      </button>
+    </div>
+  );
+};
+
+export default AudioPlayer;
+

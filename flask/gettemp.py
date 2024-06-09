@@ -29,7 +29,7 @@ def ds18b20_read_sensors():
          f.close()
          if "YES" in data:
            (discard, sep, reading) = data.partition(' t=')
-           rtn[deviceid]['temp_c'] = float(reading) / float(1000.0)
+           rtn[deviceid]['temp_c'] = ((float(reading) / float(1000.0))-11.4)
          else:
            rtn[deviceid]['error'] = 'No YES flag: bad data.'
       except Exception as e:

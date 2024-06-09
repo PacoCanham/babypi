@@ -4,18 +4,22 @@ import Stack from '@mui/material/Stack';
 import IconButton from '@mui/material/IconButton';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
+import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
+import Slider from '@mui/material/Slider';
 import { useState } from 'react';
 import { useEffect } from 'react';
 
 
-export default function NoisePlayer(){
-    const [playing, setPlaying] = useState(false)
+export default function NoisePlayer({volume, setVolume, playstate, setPlaystate}){
     const [noiseList, setNoiselist] = useState([])
     const [noise, setNoise] = useState('Select Track')
+    const [sliderVisibility, setSliderVisibility] = useState(true)
+
+
 
     useEffect(() => {
         async function get_noiselist() {
@@ -23,8 +27,9 @@ export default function NoisePlayer(){
                 .then((response) => response.json())
                 .then((data) => {
                     setNoiselist(data.noiselist)
-                    setPlaying(data.playstate)
+                    setPlaystate(data.playstate)
                     setNoise(data.trackname)
+                    setVolume(data.volume)
                 })
             }
         get_noiselist()
@@ -33,7 +38,7 @@ export default function NoisePlayer(){
     async function playfunction(e){
         e.preventDefault();
         await fetch('/noise');
-        setPlaying(!playing)
+        setPlaystate(!playstate)
         }
     
     async function noiseChange(e){
@@ -41,11 +46,17 @@ export default function NoisePlayer(){
         setNoise(noiseName);
         const url = '/change_noise/' + noiseName ;
         await fetch(url);
+    }
 
+    async function chooseVolume(e){
+        const newVolume = e.target.value;
+        setVolume(newVolume);
+        const url = "/setVolume/" + newVolume;
+        await fetch(url);
     }
 
     return (
-      <Box sx={{width: "40%" ,textAlign:"center", margin:"auto", padding:2}}>
+      <Box sx={{width: "auto" ,textAlign:"center", margin:"auto", padding:2}}>
         <Stack spacing={2} direction="row">
           <FormControl fullWidth>
           <InputLabel id="WhiteNoise-Select-Label">Select Track</InputLabel>
@@ -65,7 +76,18 @@ export default function NoisePlayer(){
           </FormControl>
           <IconButton
           onClick={playfunction}>
-              {!playing ? <PlayArrowIcon/> : <PauseIcon/>}
+              {!playstate ? <PlayArrowIcon/> : <PauseIcon/>}
+          </IconButton>
+          <IconButton
+                onMouseEnter={() => setSliderVisibility(true)}
+                onMouseOut={() => setSliderVisibility(false)}>
+            {sliderVisibility ? <VolumeUpIcon/> : <Slider
+        value={volume}
+        valueLabelDisplay="auto"
+        onChange={(e) => chooseVolume(e)}
+        orientation="vertical"
+        style={{ height: '75px' }}
+      /> }
           </IconButton>
         </Stack>
       </Box>

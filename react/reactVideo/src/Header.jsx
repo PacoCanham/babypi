@@ -10,13 +10,17 @@ import Settings from '@mui/icons-material/Settings';
 import { useEffect } from 'react';
 import { useState } from 'react';
 import VisibilityOutlined from '@mui/icons-material/VisibilityOutlined';
+import EditNotificationsIcon from '@mui/icons-material/EditNotifications';
 
-export default function Header({showControls, setShowControls, showNoise, setShowNoise}) {
+export default function Header({showControls, setShowControls, showNoise, setShowNoise, setVolume, setPlaystate, showFull, setShowFull}) {
   const [username, setUsername] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [viewers, setViewers] = useState(1);
-  const [ledBool, setLedBool] = useState(true)
+  const [ledBool, setLedBool] = useState(false)
   const [temp, setTemp] = useState(null)
+  const [alert, setAlert] = useState("")
+  const [open, setOpen] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
 
 
   // get username and viewers on launch
@@ -27,9 +31,13 @@ export default function Header({showControls, setShowControls, showNoise, setSho
        .then(dictionary => {
         setUsername(dictionary.username)
         setLedBool(dictionary.led)
+        setTemp(dictionary.temp)
+        setVolume(dictionary.volume)
+        setPlaystate(dictionary.playstate)
         }
         )
       };
+
     const getUpdates = () => {
       fetch('/updates')
        .then(response => response.json())
@@ -52,6 +60,21 @@ export default function Header({showControls, setShowControls, showNoise, setSho
     };
     getUpdates();
     const intervalId = setInterval(getUpdates, 30000);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  
+  const restart_cam = () => {
+    fetch('/restart_cam')
+    closeMenu()
+  }
+  
+  useEffect(() => {
+    const newCam = () => {
+      fetch('/restart_cam')
+    };
+    newCam();
+    const intervalId = setInterval(newCam, 600000);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -82,6 +105,7 @@ export default function Header({showControls, setShowControls, showNoise, setSho
           <Typography variant="h6" component="div" sx={{ flexGrow: 1, textAlign:"start" }}>
             Hello {username}
           </Typography>
+        <EditNotificationsIcon fontSize="large" onclick=""/>
           {temp}°C <VisibilityOutlined /> {viewers}
             <div>
               <IconButton
@@ -104,17 +128,21 @@ export default function Header({showControls, setShowControls, showNoise, setSho
                   horizontal: 'right',
                 }}
                 open={Boolean(anchorEl)}
+                onClose={closeMenu}
               >
                 <MenuItem onClick={handleLEDs}>Turn LED's {(ledBool)?"Off":"On"}</MenuItem>
+                <MenuItem onClick={restart_cam}>Restart Camera</MenuItem>                
                 <MenuItem onClick={()=>{setShowControls(!showControls);closeMenu()}}>{(showControls)?"Hide":"Show"} Controls</MenuItem>
+                <MenuItem onClick={()=>{setShowFull(!showFull);closeMenu()}}>{(showFull)?"Hide":"Show"} Audio Player</MenuItem>
                 <MenuItem onClick={()=>{setShowNoise(!showNoise);closeMenu()}}>{(showNoise)?"Hide":"Show"} Noise Player</MenuItem>
                 <MenuItem id="/register" onClick={handleNav}>Register</MenuItem>
                 <MenuItem id="/logout" onClick={handleNav}>Logout</MenuItem>
-                <MenuItem onClick={closeMenu}>Close Menu</MenuItem>
+                {/* <MenuItem onClick={closeMenu}>Close Menu</MenuItem> */}
               </Menu>
             </div>
         </Toolbar>
       </AppBar>
+      {showAlert && <AlertDialog title={"Notification Setrtings"} setShowAlert={setShowAlert} alert={alert}/>}
     </Box>
   );
 }

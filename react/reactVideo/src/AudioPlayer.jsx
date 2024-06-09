@@ -1,43 +1,62 @@
-import React, { useEffect, useRef } from 'react';
-import ReactHlsPlayer from 'react-hls-player';
+import React, { useEffect, useRef, useState } from 'react';
+import Hls from 'hls.js';
 
-const AudioPlayer = ({ streamUrl }) => {
-  const playerRef = useRef(null);
+export default function AudioPlayer({ showFull }) {
+  const videoRef = useRef();
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [hls, setHls] = useState(null);
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (playerRef.current && playerRef.current.hls) {
-        const hls = playerRef.current.hls;
-        const liveEdge = hls.liveSyncPosition;
-        const currentTime = playerRef.current.video.currentTime;
+    if (Hls.isSupported()) {
+      const hlsInstance = new Hls();
+      const video = videoRef.current;
 
-        if (liveEdge - currentTime > 3) {
-          playerRef.current.video.currentTime = liveEdge;
-        }
-      }
-    }, 1000); // Check every second
-
-    return () => clearInterval(intervalId); // Clean up on unmount
+      hlsInstance.attachMedia(video);
+      hlsInstance.on(Hls.Events.MEDIA_ATTACHED, function () {
+        console.log("video and hls.js are now bound together !");
+        setHls(hlsInstance);
+      });
+    }
   }, []);
 
-  return (
-    <ReactHlsPlayer
-      playerRef={playerRef}
-      src={streamUrl}
-      autoPlay={true} // Autoplay is enabled
-      controls={true} // Playback controls are shown
-      width="100%"
-      height="15px"
-      startPosition={-1}
-      hlsConfig={{
-        maxLoadingDelay: 2, // Align with FFmpeg's low latency settings
-        minAutoBitrate: 0, // No minimum bitrate, allowing for adaptive bitrate
-        lowLatencyMode: true, // Enable low latency mode
-        maxBufferLength: 0.5, // Set buffer length to 0.5s to match FFmpeg's segment time
-        liveSyncDurationCount: 1, // Sync with the latest segment for low latency
-      }}
-    />
-  );
-};
+  const togglePlay = () => {
+    if (isPlaying) {
+      hls.stopLoad();
+      // videoRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      hls.loadSource("./stream.m3u8");
+      hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+        console.log("manifest loaded, found " + data.levels.length + " quality level");
+        setTimeout(() => {
+          videoRef.current.play();
+          setTimeout(() => {
+            videoRef.current.currentTime = videoRef.current.duration + 1;
+          }, 2000);
+        }, 1000);
+      });
+      setIsPlaying(true);
+    }
+  };
 
-export default AudioPlayer;
+  useEffect(() => {
+    if (isPlaying) {
+      const interval = setInterval(() => {
+        videoRef.current.currentTime = videoRef.current.duration;
+      }, 120000);
+      return () => clearInterval(interval);
+    }
+  }, [isPlaying]);
+
+  return (
+    <div>
+    <audio ref={videoRef} {...(showFull ? { controls: true } : {})}>
+      {/* style={{ display: 'none' }}> */}
+        Your browser does not support the audio tag.
+      </audio>
+      <button onClick={togglePlay}>
+        {isPlaying ? 'Stop' : 'Start'}
+      </button>
+    </div>
+  );
+}
