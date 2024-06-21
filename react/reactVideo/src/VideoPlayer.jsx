@@ -5,15 +5,16 @@ export default function VideoPlayer({ streamUrl }) {
     return (
         <Center maw={"100vw"} bg="var(--mantine-color-gray-light)">
             <Box>
-                <AspectRatio ratio={1920 / 1080} maw={"75vw"} mah={"75vh"} m="auto">
-                    <Image
-                        radius="md"
-                        src={streamUrl}
-                        onError={() => {
-                            window.location.reload(false);
-                        }}
-                    />
-                </AspectRatio>
+                    <img
+                    src={streamUrl}
+                    alt="Live stream"
+                    style={{
+                      maxWidth: "100%", // Ensure it's responsive
+                      height: "auto", // Maintain aspect ratio
+                      border: "2px solid black",
+                      borderRadius: "5%",
+                      boxShadow: "0 4px 8px 0 rgba(0,0,0,0.2)" // Optional: Adds a subtle shadow for depth
+                    }}/>            
             </Box>
         </Center>
     );
@@ -30,13 +31,5 @@ export default function VideoPlayer({ streamUrl }) {
 //     )
 // }
 
-//     src={streamUrl}
-//     alt="Live stream"
-//     style={{
-//       maxWidth: "100%", // Ensure it's responsive
-//       height: "auto", // Maintain aspect ratio
-//       border: "2px solid black",
-//       borderRadius: "5%",
-//       boxShadow: "0 4px 8px 0 rgba(0,0,0,0.2)" // Optional: Adds a subtle shadow for depth
-//     }}
+    
 //   />
