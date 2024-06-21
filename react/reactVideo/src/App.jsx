@@ -8,6 +8,7 @@ import React, { useState, useEffect } from 'react';
 import NoisePlayer from "./NoisePlayer.jsx";
 import NoSleep from 'nosleep.js';
 
+
 export default function App() {
   const [showControls, setShowControls] = useState(false);
   const [showNoise, setShowNoise] = useState(false);
