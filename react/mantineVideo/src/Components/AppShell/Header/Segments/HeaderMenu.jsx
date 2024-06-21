@@ -11,8 +11,11 @@ import {
     IconDeviceCctv,
     IconMicrophone2,
   } from '@tabler/icons-react';
+import VideoNotificationModal from "./VideoNotificationModal";
+import { useDisclosure } from "@mantine/hooks";
 
-export default function HeaderMenu(props){
+export default function HeaderMenu(props){    
+
     function handleAccount(e){
         e.preventDefault()
         const url = e.currentTarget.id

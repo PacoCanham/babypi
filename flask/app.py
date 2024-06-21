@@ -20,7 +20,6 @@ from libcamera import controls, Transform
 from picamera2 import Picamera2
 from picamera2.encoders import MJPEGEncoder, H264Encoder
 from picamera2.outputs import FileOutput, FfmpegOutput
-#from audiotest import process_audio_from_ffmpeg
 import io
 import pigpio
 import vlc
@@ -140,12 +139,11 @@ def login_required(f):
 # @app.route("/movement")
 def movement():
     movement_count = 0
-    lastP3notification = 0
-    continuous_movement = False
+    lastNotification = 0
     while True:
         try:
             image1 = output.return_array()
-            sleep(0.1)
+            sleep(0.25)
             image2 = output.return_array()
             # Convert the images to grayscale
             gray1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
@@ -163,33 +161,21 @@ def movement():
             if white_pixels > 1000 :
                 movement_count += 1
                 print(f"Motion Detected {movement_count} times")
-                if movement_count > 4 :
-                    if not continuous_movement :
-                        if time() - lastP3notification >= 600:  # 600 seconds = 10 minutes
-                            priority = '3'
-                            title = "Movement Detected"
-                            tags = "warning"
-                            lastP3notification = time()  # Update the timestamp
-                            requests.put("https://192.168.4.182:8181/babycam",
-                            data=output.return_bytes().getvalue(),
-                            headers={ "Filename": "Blanca",
-                            "Title" : title,
-                            "Tags" : tags,
-                            "Priority" : priority
-                            })
-                    continuous_movement = True
-                    print("Waiting 30s to check for movement")
-                    sleep(30)
-                    image1_after_sleep = output.return_array()
-                    sleep(0.1)
-                    image2_after_sleep = output.return_array()
-                    gray1_after_sleep = cv2.cvtColor(image1_after_sleep, cv2.COLOR_BGR2GRAY)
-                    gray2_after_sleep = cv2.cvtColor(image2_after_sleep, cv2.COLOR_BGR2GRAY)
-
-                    diff_after_sleep = cv2.absdiff(gray2_after_sleep, gray1_after_sleep)
-                    _, thresholded_diff_after_sleep = cv2.threshold(diff_after_sleep, 60, 255, cv2.THRESH_BINARY)
-                    white_pixels_after_sleep = np.sum(thresholded_diff_after_sleep == 255)
-                    if white_pixels_after_sleep > 1000:
+                if movement_count == 4 :
+                    if time() - lastNotification >= 600:  # 600 seconds = 10 minutes
+                        priority = '3'
+                        title = "Movement Detected"
+                        tags = "warning"
+                        lastP3notification = time()  # Update the timestamp
+                        requests.put("https://192.168.4.182:8181/babycam",
+                        data=output.return_bytes().getvalue(),
+                        headers={ "Filename": "Blanca",
+                        "Title" : title,
+                        "Tags" : tags,
+                        "Priority" : priority
+                        })
+                elif movement_count == 30 :
+                    if time() - lastNotification >= 600:  # 600 seconds = 10 minutes
                         priority = '4'
                         title = "Continuous Movement (Over 30 Seconds!)"
                         tags = "bangbang"
@@ -200,20 +186,15 @@ def movement():
                         "Tags" : tags,
                         "Priority" : priority
                         })
-                    else:
-                        continuous_movement = False
-                        movement_count = 0
             else:
-                continuous_movement = False
                 movement_count = 0
-            sleep(1)
+            sleep(0.5)
         except Exception as e:
-            print(e)
             print("Waiting for first frame")
             sleep(5)
 
-mov = threading.Thread(target=movement)
-mov.start()
+# mov = threading.Thread(target=movement)
+# mov.start()
 
 @app.route("/hourly")
 @login_required
@@ -447,7 +428,7 @@ def getOnce():
 @app.route("/logout")
 def logout():
     session.clear()
-    return jsonify({'url' : '/login'})
+    return render_template("login.html")
 
 def generateVideo():
     while True:

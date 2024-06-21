@@ -8,6 +8,7 @@ export default function AppSh(){
   const [opened, { toggle }] = useDisclosure();
   const [settings, setSettings] = useSetState({username:"", ledBool:true, temp:21, volume:10, viewers:0, notifications:true, playstate:false})
   const [notificationSettings, setNotificationSettings] = useSetState({})
+
   const [displayed, setDisplayed] = useSetState({
     leds:false,
     controls:false,
