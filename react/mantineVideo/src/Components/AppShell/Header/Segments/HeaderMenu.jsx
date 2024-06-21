@@ -34,7 +34,7 @@ export default function HeaderMenu(props){
 
         <Menu.Dropdown>
             <Menu.Label>Camera Options</Menu.Label>
-            <Menu.Item onClick={()=>{props.setDisplayed({leds:!props.displayed.leds})}} leftSection={<IconSunHigh style={{ width: rem(14), height: rem(14) }} />}>
+            <Menu.Item onClick={()=>{props.setDisplayed({leds:!props.displayed.leds});fetch('/led_on_off')}} leftSection={<IconSunHigh style={{ width: rem(14), height: rem(14) }} />}>
             IR Light {(props.displayed.leds)?'Off':'On'}
             </Menu.Item>
             <Menu.Item onClick={()=>{props.setDisplayed({controls:!props.displayed.controls})}} leftSection={<IconArrowsMove style={{ width: rem(14), height: rem(14) }} />}>

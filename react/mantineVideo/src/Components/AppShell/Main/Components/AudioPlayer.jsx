@@ -13,7 +13,6 @@ export default function AudioPlayer(props) {
 
       hlsInstance.attachMedia(video);
       hlsInstance.on(Hls.Events.MEDIA_ATTACHED, function () {
-        console.log("video and hls.js are now bound together !");
         setHls(hlsInstance);
       });
     }
@@ -27,7 +26,6 @@ export default function AudioPlayer(props) {
     } else {
       hls.loadSource("./stream.m3u8");
       hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
-        console.log("manifest loaded, found " + data.levels.length + " quality level");
         setTimeout(() => {
           videoRef.current.play();
           setTimeout(() => {
@@ -53,7 +51,7 @@ export default function AudioPlayer(props) {
     <audio ref={videoRef} {...(props.showFull ? { controls: true } : {})}>
       {/* style={{ display: 'none' }}> */}
         Your browser does not support the audio tag.
-      </audio>
+      </audio><br/>
       <button onClick={togglePlay}>
         {isPlaying ? 'Stop' : 'Start'}
       </button>

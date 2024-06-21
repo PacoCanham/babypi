@@ -442,7 +442,7 @@ def register():
 def getOnce():
     username = session["username"]
     (UDValue, LRValue, flipped, led, volume, trackname, playstate) = loadconfig()
-    return jsonify({"username" : username.capitalize(), "led":led, "volume":volume, "playstate":playstate,})
+    return jsonify({"username" : username.capitalize(), "led":led, "volume":volume, "playstate":playstate})
 
 @app.route("/logout")
 def logout():

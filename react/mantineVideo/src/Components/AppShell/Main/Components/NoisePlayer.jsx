@@ -1,20 +1,11 @@
 import * as React from 'react';
-import {Box} from '@mui/material';
-import Stack from '@mui/material/Stack';
-import IconButton from '@mui/material/IconButton';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import PauseIcon from '@mui/icons-material/Pause';
-import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
-import Slider from '@mui/material/Slider';
 import { useState } from 'react';
 import { useEffect } from 'react';
+import { ActionIcon, Group, MultiSelect, Slider } from '@mantine/core';
+import { IconPlayerPause, IconPlayerPlay } from '@tabler/icons-react';
 
 
-export default function NoisePlayer({volume, setVolume, playstate, setPlaystate}){
+export default function NoisePlayer(props){
     const [noiseList, setNoiselist] = useState([])
     const [noise, setNoise] = useState('Select Track')
     const [sliderVisibility, setSliderVisibility] = useState(true)
@@ -27,69 +18,58 @@ export default function NoisePlayer({volume, setVolume, playstate, setPlaystate}
                 .then((response) => response.json())
                 .then((data) => {
                     setNoiselist(data.noiselist)
-                    setPlaystate(data.playstate)
+                    props.setSettings({playstate:data.playstate, volume:data.volume})
                     setNoise(data.trackname)
-                    setVolume(data.volume)
                 })
             }
         get_noiselist()
     }, [])
 
-    async function playfunction(e){
+    function playfunction(e){
         e.preventDefault();
-        await fetch('/noise');
-        setPlaystate(!playstate)
+        console.log(props.settings)
+        props.setSettings({playstate:!props.settings.playstate})
+        fetch('/noise')
         }
     
-    async function noiseChange(e){
-        const noiseName = e.target.value;
-        setNoise(noiseName);
+    function noiseChange(selection){
+        const noiseName = selection;
+        setNoise(selection);
         const url = '/change_noise/' + noiseName ;
-        await fetch(url);
+        fetch(url);
     }
 
-    async function chooseVolume(e){
-        const newVolume = e.target.value;
-        setVolume(newVolume);
-        const url = "/setVolume/" + newVolume;
-        await fetch(url);
+    function chooseVolume(value){
+        props.setSettings({volume:value})
+        const url = "/setVolume/" + value;
+        fetch(url);
     }
 
     return (
-      <Box sx={{width: "auto" ,textAlign:"center", margin:"auto", padding:2}}>
-        <Stack spacing={2} direction="row">
-          <FormControl fullWidth>
-          <InputLabel id="WhiteNoise-Select-Label">Select Track</InputLabel>
-          <Select
-            labelId="WhiteNoise-Select-Label"
-            id="WhiteNoise-Select-Label"
-            value={noise}
-            label="Select Track"
-            onChange={noiseChange}
-          >
-              {noiseList.map((noiseName)=>{
-                  return (
-                      <MenuItem value={noiseName}>{noiseName}</MenuItem>
-                  )
-              })}
-          </Select>
-          </FormControl>
-          <IconButton
-          onClick={playfunction}>
-              {!playstate ? <PlayArrowIcon/> : <PauseIcon/>}
-          </IconButton>
-          <IconButton
-                onMouseEnter={() => setSliderVisibility(true)}
-                onMouseOut={() => setSliderVisibility(false)}>
-            {sliderVisibility ? <VolumeUpIcon/> : <Slider
-        value={volume}
-        valueLabelDisplay="auto"
-        onChange={(e) => chooseVolume(e)}
-        orientation="vertical"
-        style={{ height: '75px' }}
-      /> }
-          </IconButton>
-        </Stack>
-      </Box>
+        <><Group justify="center" align="end">
+          <MultiSelect
+            label="Pick White noise track"
+            placeholder="Please select a track"
+            data={noiseList}
+            p={10}
+            w={'90%'}
+            onChange={noiseChange}/>
+           <ActionIcon variant="filled" color="gray" size="xl" radius="xl" aria-label="Settings" onClick={playfunction}>
+              {props.playstate ? <IconPlayerPause/> : <IconPlayerPlay/>}
+          </ActionIcon></Group>
+          <Slider
+          color='gray'
+          marks={[
+            {value : 0, label: '0%'},
+            {value : 20, label: '20%'},
+            {value : 40, label: '40%'},
+            {value : 60, label: '60%'},
+            {value : 80, label: '80%'},
+            {value : 100, label: '100%'},
+          ]}
+          onChangeEnd={chooseVolume}
+          p={10}>
+          </Slider>
+          </>
     );
 }
