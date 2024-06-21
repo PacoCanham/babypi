@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
+import stream from "./stream.m3u8";
 
 export default function AudioPlayer({ showFull }) {
   const videoRef = useRef();
@@ -25,7 +26,7 @@ export default function AudioPlayer({ showFull }) {
       // videoRef.current.pause();
       setIsPlaying(false);
     } else {
-      hls.loadSource("./stream.m3u8");
+      hls.loadSource({stream});
       hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
         console.log("manifest loaded, found " + data.levels.length + " quality level");
         setTimeout(() => {
