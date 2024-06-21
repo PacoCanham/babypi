@@ -7,7 +7,8 @@ import NotifyTest from "./NotifyTest.jsx";
 import React, { useState, useEffect } from 'react';
 import NoisePlayer from "./NoisePlayer.jsx";
 import NoSleep from 'nosleep.js';
-
+import '@mantine/core/styles.css';
+import { MantineProvider } from '@mantine/core';
 
 export default function App() {
   const [showControls, setShowControls] = useState(false);
@@ -16,7 +17,6 @@ export default function App() {
   const [volume, setVolume] = useState(20);
   const [playstate, setPlaystate] = useState(false);
   const [showFull, setShowFull] = useState(false);
-
   useEffect(() => {
     const noSleep = new NoSleep();
 
@@ -46,6 +46,7 @@ export default function App() {
 
 
   return (
+    <MantineProvider defaultColorScheme="dark">
     <div style={{ margin: '0', padding: '0', width: '100vw' }}>
       <div style={{ margin: '0', padding: '1', width: '100vw', height: '10vh' }}>
         <Header showControls={showControls} setShowControls={setShowControls} showNoise={showNoise} setShowNoise={setShowNoise} setVolume={setVolume} setPlaystate={setPlaystate} showFull={showFull} setShowFull={setShowFull} />
@@ -61,5 +62,6 @@ export default function App() {
         <hr/>
       </div>
     </div>
+    </MantineProvider>
   );
 }
