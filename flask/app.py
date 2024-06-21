@@ -544,5 +544,4 @@ def setVolume(newVolume):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=443, debug=False, threaded=True)
-    #  ssl_context=('pacocanham.ddns.net.crt', 'pacocanham.ddns.net.key'))
+    app.run(host='0.0.0.0', port=443, debug=False, threaded=True,ssl_context=('pacocanham.ddns.net.crt', 'pacocanham.ddns.net.key'))
