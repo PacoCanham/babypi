@@ -2,15 +2,6 @@ import { Button, Group, SimpleGrid } from "@mantine/core";
 import { IconArrowDown, IconArrowLeft, IconArrowRight, IconArrowUp } from "@tabler/icons-react";
 
 export default function Controls(){
-    function handleClick(e) {
-        e.preventDefault();
-        let url =  (e.currentTarget.id);
-        async function moveCamera(e) {
-            // sends a get request to /settings
-            const response = await fetch(url);
-        }
-        moveCamera();
-    }
 
     return (
     <SimpleGrid
@@ -18,15 +9,15 @@ export default function Controls(){
     spacing='xs'
     verticalSpacing='xs'>
         <Group justify="center" gap='xs'>
-    <Button id="/up" w={221} handleClick={handleClick}>{<IconArrowUp/>}</Button>	
+    <Button id="/up" w={221} onClick={()=>fetch("/up")}>{<IconArrowUp/>}</Button>	
     </Group>	
             <Group justify="center" gap='xs'>
-                <Button w={200/3} id="/left" handleClick={handleClick}>{<IconArrowLeft/>}</Button>				
-                <Button w={200/3} id="/flip" handleClick={handleClick}>FLIP</Button>				
-                <Button w={200/3} id="/right" handleClick={handleClick}>{<IconArrowRight/>}</Button>			
+                <Button w={200/3} id="/left" onClick={()=>fetch("/left")}>{<IconArrowLeft/>}</Button>				
+                <Button w={203/3} id="/flip" onClick={()=>fetch("/flip")}>FLIP</Button>				
+                <Button w={200/3} id="/right" onClick={()=>fetch("/right")}>{<IconArrowRight/>}</Button>			
             </Group>
             <Group justify="center" gap='xs'>
-    <Button id="/down" w={221} handleClick={handleClick}>{<IconArrowDown/>}</Button>		
+    <Button id="/down" w={221} onClick={()=>fetch("/down")}>{<IconArrowDown/>}</Button>		
     </Group>		
     </SimpleGrid>
     )
