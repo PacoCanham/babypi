@@ -6,7 +6,7 @@ import NoisePlayer from "./Components/NoisePlayer";
 export default function MainPage(props){
     return(<>
         <Image
-        src={"/video.mjpeg"}
+        src={"/video.mjpg"}
         radius={25}
         fallbackSrc="static/loading.jpg"
         p={25}
