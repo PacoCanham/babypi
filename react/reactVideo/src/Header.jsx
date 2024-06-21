@@ -109,8 +109,8 @@ export default function Header({showControls, setShowControls, showNoise, setSho
           {temp}°C <VisibilityOutlined /> {viewers}
             <div>
               <IconButton
-                size="large"
                 onClick={handleMenu}
+                size="large"
                 color="inherit"
               >
                 <Settings/>
