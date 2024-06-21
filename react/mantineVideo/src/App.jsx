@@ -1,14 +1,13 @@
 import { useState } from 'react'
-import '@mantine/core/styles.css';
-import './App.css'
 import { MantineProvider } from '@mantine/core';
+import '@mantine/core/styles.css';
 import AppSh from './Components/AppShell/AppSh';
+import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
- <MantineProvider>
+ <MantineProvider defaultColorScheme="dark">
     <AppSh/>
  </MantineProvider>
   )
