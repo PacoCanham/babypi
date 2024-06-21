@@ -3,9 +3,9 @@ import { AspectRatio, Box, Center, Image } from "@mantine/core";
 
 export default function VideoPlayer({ streamUrl }) {
     return (
-        <Center maw={400} h={100} bg="var(--mantine-color-gray-light)">
+        <Center maw={"100vw"} bg="var(--mantine-color-gray-light)">
             <Box>
-                <AspectRatio ratio={1920 / 1080} maw={"75vw"} mx="auto">
+                <AspectRatio ratio={1920 / 1080} maw={"75vw"} mah={"75vh"} m="auto">
                     <Image
                         radius="md"
                         src={streamUrl}
