@@ -20,13 +20,13 @@ export default function Header(props){
       direction="row"
       wrap="nowrap">
         <Group>
-            <Title flex="flex-start" order={1}>Hello {props.settings.username}</Title>
+            <Title flex="flex-start">Hello {props.settings.username}</Title>
         </Group>
         <Group>
             <Text onClick={()=>{props.setSettings({notifications:!props.settings.notifications})}}>
             {(props.settings.notifications)?<IconBell/>:<IconBellOff/>}</Text>
-            <Text size="xl" fw={500}>{props.settings.temp}°C </Text>
-            <Text size='xl'>{props.settings.viewers}</Text>
+            <Text >{props.settings.temp}°C </Text>
+            <Text >{props.settings.viewers}</Text>
             <IconEye size={32}/>
             <HeaderMenu displayed={props.displayed} setDisplayed={props.setDisplayed} settings={props.settings} setSettings={props.setSettings}/>
         </Group>
