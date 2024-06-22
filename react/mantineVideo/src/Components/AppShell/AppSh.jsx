@@ -47,15 +47,17 @@ const getUpdates = () => {
       padding="xl"
     >
       <AppShell.Header>
-        <Burger
-          opened={opened}
-          onClick={toggle}
-          hiddenFrom="sm"
-          size="sm"
-        />
         <Header displayed={displayed} setDisplayed={setDisplayed} settings={settings} setSettings={setSettings}/>
       </AppShell.Header>
       <AppShell.Main><MainPage settings={settings} setSettings={setSettings} displayed={displayed}/></AppShell.Main>
     </AppShell>
   );
 }
+
+
+{/* <Burger
+opened={opened}
+onClick={toggle}
+hiddenFrom="sm"
+size="sm"
+/> */}
