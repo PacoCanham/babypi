@@ -5,6 +5,7 @@ from flask_cors import CORS, cross_origin
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 from time import sleep, time
+from classes import *
 import pyaudio
 
 from datetime import datetime,timedelta
@@ -22,8 +23,6 @@ from picamera2.encoders import MJPEGEncoder, H264Encoder
 from picamera2.outputs import FileOutput, FfmpegOutput
 import io
 import pigpio
-import vlc
-from PIL import Image
 import requests
 import cv2
 import numpy as np
@@ -52,67 +51,8 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 user_activity_log = {}
+settings = {'camera' : {'UDValue':7.5, 'LRValue':7.5, 'flipped':False, 'led':False, 'volume': 20, 'trackname':'30-Stream-60min.mp3', 'playstate':False}, 'notifications':{"move_threshold":60, "detection_threshold":1000, "movement_count_low" : 4, "movement_count_high":30,"delaytime_low":600,"delaytime_high":600, "enabled": True}}
 
-class CustomAudioPlayer:
-    def __init__(self):
-        self.instance = vlc.Instance('--input-repeat=-1')
-        self.player = self.instance.media_player_new()
-        self.playing = False
-        self.current_track = None
-
-    def play(self, track):
-        if not self.playing:
-            self.playing = True
-            self.current_track = self.instance.media_new(track)
-            self.player.set_media(self.current_track)
-            self.player.play()
-
-    def pause(self):
-        if self.playing:
-            self.playing = False
-            self.player.pause()
-
-    def resume(self):
-        if not self.playing and self.current_track:
-            self.playing = True
-            self.player.play()
-
-    def stop(self):
-        if self.playing:
-            self.playing = False
-            self.player.stop()
-
-class StreamingOutput(io.BufferedIOBase):
-    def __init__(self):
-        self.frame = None
-        self.condition = threading.Condition()
-
-    def write(self, buf):
-        with self.condition:
-            self.frame = buf
-            self.condition.notify_all()
-
-    def save(self, filename):
-        if self.frame is not None:
-            image = Image.open(io.BytesIO(self.frame))
-            image.save(filename)
-        else:
-            print("No frame available")
-
-    def return_bytes(self):
-        if self.frame is not None:
-            return io.BytesIO(self.frame)
-        else:
-            print("No frame available")
-            return None
-
-    def return_array(self):
-        if self.frame is not None:
-            image = Image.open(io.BytesIO(self.frame))
-            return np.array(image)
-        else:
-            print("No frame available")
-            return None
 
 tuningpath = os.path.join(os.getcwd(),"tuning.json")
 #tuningpath = '/home/paco/babypi/flask/tuning.json'
@@ -136,65 +76,71 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# @app.route("/movement")
-def movement():
+
+# settings["notifications"] = {"move_threshold":60, "detection_threshold":1000, "movement_count_low" : 4, "movement_count_high":30,"delaytime_low":600,"delaytime_high":600}
+
+def detect_movement():
     movement_count = 0
     lastNotification = 0
     while True:
         try:
-            image1 = output.return_array()
-            sleep(0.25)
-            image2 = output.return_array()
-            # Convert the images to grayscale
-            gray1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
-            gray2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
+            if settings["notifications"]["enabled"] == True:
+                image1 = output.return_array()
+                sleep(0.25)
+                image2 = output.return_array()
+                # Convert the images to grayscale
+                gray1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
+                gray2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
 
-            # Compute the absolute difference between the two images
-            diff = cv2.absdiff(gray1, gray2)
+                # Compute the absolute difference between the two images
+                diff = cv2.absdiff(gray1, gray2)
 
-            # Apply a binary threshold to the difference (you can adjust the threshold value as needed)
-            _, thresholded_diff = cv2.threshold(diff, 60, 255, cv2.THRESH_BINARY)
+                # Apply a binary threshold to the difference (you can adjust the threshold value as needed)
+                _, thresholded_diff = cv2.threshold(diff, settings["notifications"]["move_threshold"], 255, cv2.THRESH_BINARY)
 
-            # Count the number of white pixels in the thresholded image
-            white_pixels = np.sum(thresholded_diff == 255)
+                # Count the number of white pixels in the thresholded image
+                white_pixels = np.sum(thresholded_diff == 255)
 
-            if white_pixels > 1000 :
-                movement_count += 1
-                print(f"Motion Detected {movement_count} times")
-                if movement_count == 4 :
-                    if time() - lastNotification >= 600:  # 600 seconds = 10 minutes
-                        priority = '3'
-                        title = "Movement Detected"
-                        tags = "warning"
-                        lastP3notification = time()  # Update the timestamp
-                        requests.put("https://192.168.4.182:8181/babycam",
-                        data=output.return_bytes().getvalue(),
-                        headers={ "Filename": "Blanca",
-                        "Title" : title,
-                        "Tags" : tags,
-                        "Priority" : priority
-                        })
-                elif movement_count == 30 :
-                    if time() - lastNotification >= 600:  # 600 seconds = 10 minutes
-                        priority = '4'
-                        title = "Continuous Movement (Over 30 Seconds!)"
-                        tags = "bangbang"
-                        requests.put("https://192.168.4.182:8181/babycam",
-                        data=output.return_bytes().getvalue(),
-                        headers={ "Filename": "Blanca",
-                        "Title" : title,
-                        "Tags" : tags,
-                        "Priority" : priority
-                        })
+                if white_pixels > settings["notifications"]["detection_threshold"] :
+                    movement_count += 1
+                    print(f"Motion Detected {movement_count} times")
+                    if movement_count == settings["notifications"]["movement_count_low"] :
+                        if time() - lastNotification >= settings["notifications"]["delaytime_low"]:  # 600 seconds = 10 minutes
+                            priority = '3'
+                            title = "Movement Detected"
+                            tags = "warning"
+                            lastP3notification = time()  # Update the timestamp
+                            requests.put("https://192.168.4.182:8181/babycam",
+                            data=output.return_bytes().getvalue(),
+                            headers={ "Filename": "Blanca",
+                            "Title" : title,
+                            "Tags" : tags,
+                            "Priority" : priority
+                            })
+                    elif movement_count == settings["notifications"]["movement_count_high"] :
+                        if time() - lastNotification >= settings["notifications"]["delaytime_high"]:  # 600 seconds = 10 minutes
+                            priority = '4'
+                            title = f'Continuous Movement (Over {settings["notifications"]["movement_count_high"]} Seconds!)'
+                            tags = "bangbang"
+                            requests.put("https://192.168.4.182:8181/babycam",
+                            data=output.return_bytes().getvalue(),
+                            headers={ "Filename": "Blanca",
+                            "Title" : title,
+                            "Tags" : tags,
+                            "Priority" : priority
+                            })
+                else:
+                    movement_count = 0
             else:
-                movement_count = 0
+                loadconfig()
+                sleep(5)
             sleep(0.5)
         except Exception as e:
             print("Waiting for first frame")
             sleep(5)
 
-# mov = threading.Thread(target=movement)
-# mov.start()
+mov = threading.Thread(target=detect_movement)
+mov.start()
 
 @app.route("/hourly")
 @login_required
@@ -266,16 +212,7 @@ def user_check():
     global active_users
     timeout = timedelta(minutes=1)
     active_users = sum(1 for timestamp in user_activity_log.values() if timestamp > datetime.now() - timeout)
-#     if active_users == 0 :
-#         picam.stop()
-#         stop_ffmpeg()
 
-# def run_user_check():
-#     while True:
-#         user_check()
-#         time.sleep(45)
-
-#threading.Thread(target=process_audio_from_ffmpeg).start()
 
 @app.route("/updates")
 @login_required
@@ -284,108 +221,91 @@ def updates():
     temp = gettemp()
     return jsonify({'viewers' : active_users, "temp":temp})
 
-@app.route("/up")
+
+@app.route("/move/<direction>")
 @login_required
-def up():
-    (UDValue, LRValue, flipped, led, volume, trackname, playstate) = loadconfig()
-    if (flipped):
-        if UDValue < 2500 :
-            UDValue += 50
-    else:
-        if UDValue > 500 :
-            UDValue -= 50
-    pwm.set_servo_pulsewidth(UDPIN, UDValue) 
-    saveconfig(UDValue, LRValue, flipped, led, volume, trackname, playstate)
+def move(direction):
+    match (direction):
+        case ("up"):
+                if (settings["camera"]["flipped"]):
+                    if settings["camera"]["UDValue"] < 2500 :
+                        settings["camera"]["UDValue"] += 50
+                else:
+                    if settings["camera"]["UDValue"] > 500 :
+                        settings["camera"]["UDValue"] -= 50
+        case ("down"):
+                if settings["camera"]["flipped"]:
+                    if settings["camera"]["UDValue"] > 500 :
+                        settings["camera"]["UDValue"] -= 50
+                else:
+                    if settings["camera"]["UDValue"] < 2500 :
+                        settings["camera"]["UDValue"] += 50
+        case ("right"):
+                if settings["camera"]["flipped"]:
+                    if settings["camera"]["LRValue"] < 2500 :
+                        settings["camera"]["LRValue"] += 50
+                else:
+                    if settings["camera"]["LRValue"] > 500 :
+                        settings["camera"]["LRValue"] -= 50
+        case ("left"):
+                if settings["camera"]["flipped"]:
+                    if settings["camera"]["LRValue"] > 500 :
+                        settings["camera"]["LRValue"] -= 50
+                else:
+                    if settings["camera"]["LRValue"] < 2500 :
+                        settings["camera"]["LRValue"] += 50
+    pwm.set_servo_pulsewidth(UDPIN, settings["camera"]["UDValue"]) 
+    pwm.set_servo_pulsewidth(LRPIN, settings["camera"]["LRValue"]) 
+    saveconfig()
     return ('', 204)
 
-@app.route("/down")
-@login_required
-def down():
-    (UDValue, LRValue, flipped, led, volume, trackname, playstate) = loadconfig()
-    if (flipped):
-        if UDValue > 500 :
-            UDValue -= 50
-    else:
-        if UDValue < 2500 :
-            UDValue += 50
-    pwm.set_servo_pulsewidth(UDPIN, UDValue) 
-    saveconfig(UDValue, LRValue, flipped, led, volume, trackname, playstate)
-    return ('', 204)
-
-@app.route("/right")
-@login_required
-def right():
-    (UDValue, LRValue, flipped, led, volume, trackname, playstate) = loadconfig()
-    if (flipped):
-        if LRValue < 2500 :
-            LRValue += 50
-    else:
-        if LRValue > 500 :
-            LRValue -= 50
-    pwm.set_servo_pulsewidth(LRPIN, LRValue) 
-    saveconfig(UDValue, LRValue, flipped, led, volume, trackname, playstate)
-    return ('', 204)
-
-@app.route("/left")
-@login_required
-def left():
-    (UDValue, LRValue, flipped, led, volume, trackname, playstate) = loadconfig()
-    if (flipped):
-        if LRValue > 500 :
-            LRValue -= 50
-    else:
-        if LRValue < 2500 :
-            LRValue += 50
-    pwm.set_servo_pulsewidth(LRPIN, LRValue) 
-    saveconfig(UDValue, LRValue, flipped, led, volume, trackname, playstate)
-    return ('', 204)
 
 @app.route("/flip")
 @login_required
 def flip():
     global config
-    (UDValue, LRValue, flipped, led, volume, trackname, playstate) = loadconfig()
     picam.stop()
-    if not flipped:
-        flipped = True
+    if not settings["camera"]["flipped"]:
+        settings["camera"]["flipped"] = True
     else:
-        flipped = False
+        settings["camera"]["flipped"] = False
     config["transform"] = Transform(vflip=flipped)
     picam.configure(config)
     picam.start()
-    saveconfig(UDValue, LRValue, flipped, led, volume, trackname, playstate)
+    saveconfig()
     return ('', 204)
 
 @app.route("/led_on_off")
 @login_required
 def led_on_off():
-    (UDValue, LRValue, flipped, led, volume, trackname, playstate) = loadconfig()
-    led = not led
+    led = not settings["camera"]["led"]
+    settings["camera"]["led"] = led
     GPIO.output(LED_1_PIN, led)  
     GPIO.output(LED_2_PIN, led)
-    saveconfig(UDValue, LRValue, flipped, led, volume, trackname, playstate)
+    saveconfig()
     return ('', 204)
+
+@app.route("/getNotificationSettings")
+@login_required
+def get_notifications_settings():
+    return jsonify(settings["notifications"])
+
+@app.route("/toggleNotifications")
+@login_required
+def toggleNotifications():
+    settings["notifications"]["enabled"] = not settings["notifications"]["enabled"]
 
 def loadconfig():
     try:
         with open ("config.json", "r") as config:
-            values = json.load(config)
-            UDValue = values["UDValue"]
-            LRValue = values["LRValue"]
-            flipped = values["flipped"]
-            led = values["led"]
-            volume = values["volume"]
-            trackname = values["trackname"]
-            playstate = values["playstate"]
-            return (UDValue, LRValue, flipped, led, volume, trackname, playstate)
+            settings = json.load(config)
     except OSError as e:
-        saveconfig(7.5,7.5,False,False,20,"30-Stream-60min.mp3",False)
+        saveconfig()
         loadconfig()
 
-def saveconfig(UDValue, LRValue, flipped, led, volume, trackname, playstate):
+def saveconfig():
     with open ("config.json", "w") as config:
-        data = {"UDValue" : UDValue,"LRValue" : LRValue,"flipped" : bool(flipped),"led":bool(led),"volume":int(volume),"trackname":trackname,"playstate":playstate}
-        json.dump(data, config)
+        json.dump(settings, config)
 
 @app.route("/register", methods=["GET", "POST"])
 @login_required
@@ -410,8 +330,6 @@ def register():
             return apology("Please enter a username")
         else:
             cur.execute("INSERT INTO users (username, hash) VALUES (?, ?)", (username, passwordhash,))
-#            session["user_id"] = db.execute("SELECT * FROM users WHERE username = ?", (request.form.get("username").lower(),)).fetchall()[0][0]
-#            user_id = session["user_id"]
             conn.commit()
             conn.close()
             return jsonify({'url' : '/login'})
@@ -422,8 +340,7 @@ def register():
 @app.route("/getOnce")
 def getOnce():
     username = session["username"]
-    (UDValue, LRValue, flipped, led, volume, trackname, playstate) = loadconfig()
-    return jsonify({"username" : username.capitalize(), "led":led, "volume":volume, "playstate":playstate})
+    return jsonify({"username" : username.capitalize(), "led":settings["camera"]["led"], "volume":settings["camera"]["volume"], "playstate":settings["camera"]["playstate"]})
 
 @app.route("/logout")
 def logout():
@@ -468,59 +385,55 @@ noise_paused = False
 @login_required
 @app.route('/noiselist')
 def get_noiselist():
-    (UDValue, LRValue, flipped, led, volume, trackname, playstate) = loadconfig()
-    return jsonify({'noiselist':noiselist, "playstate":playstate, "trackname":trackname, "volume":volume})
+    return jsonify({'noiselist':noiselist, "playstate":settings["camera"]["playstate"], "trackname":settings["camera"]["trackname"], "volume":settings["camera"]["volume"]})
 
 @login_required
 @app.route('/change_noise/<noisename>')
 def change_noise(noisename):
-    (UDValue, LRValue, flipped, led, volume, trackname, playstate) = loadconfig()
     if noisename in noiselist:
-        trackname = noisename
-        print(f"track changed to {trackname}")
+        settings["camera"]["trackname"] = noisename
+        print(f'track changed to {settings["camera"]["trackname"]}')
     else :
-        print(f"track change failed {trackname}")
+        print(f'track change failed {settings["camera"]["trackname"]}')
     if playstate:
         noise_player.stop()
-        noise_player.play(f'{HLS_DIR}/noise/{trackname}')
-        print(f"continuing to play {HLS_DIR}/noise/{trackname}")
+        noise_player.play(f'{HLS_DIR}/noise/{settings["camera"]["trackname"]}')
+        print(f'continuing to play {HLS_DIR}/noise/{settings["camera"]["trackname"]}')
         playstate = True
-    saveconfig(UDValue, LRValue, flipped, led, volume, trackname, playstate)
+    saveconfig()
     return "ok"
 
 @login_required
 @app.route('/noise')
 def nosie():
-    (UDValue, LRValue, flipped, led, volume, trackname, playstate) = loadconfig()
     global noise_started
     global noise_paused
     if noise_started == False:
         setVolume(volume)
-        noise_player.play(f'{HLS_DIR}/noise/{trackname}')
+        noise_player.play(f'{HLS_DIR}/noise/{settings["camera"]["trackname"]}')
         noise_started = True
-        playstate = True
+        settings["camera"]["playstate"] = True
     elif noise_started and not noise_paused:
         noise_player.pause()
         noise_started = True
         noise_paused = True
-        playstate = False
+        settings["camera"]["playstate"] = False
     elif noise_started and noise_paused:
         noise_player.resume()
         noise_started = True
         noise_paused = False
-        playstate = True
-    saveconfig(UDValue, LRValue, flipped, led, volume, trackname, playstate)
+        settings["camera"]["playstate"] = True
+    saveconfig()
     return "ok"
 
 @login_required
 @app.route('/setVolume/<newVolume>')
 def setVolume(newVolume):
-    (UDValue, LRValue, flipped, led, volume, trackname, playstate) = loadconfig()
-    volume = newVolume
-    command = ["amixer", "-M", "set", "PCM", f"{volume}%"]
+    settings["camera"]["volume"] = newVolume
+    command = ["amixer", "-M", "set", "PCM", f"{newVolume}%"]
     subprocess.run(command, shell=False)
-    saveconfig(UDValue, LRValue, flipped, led, volume, trackname, playstate)
-    return f"volume now : {volume}", 200
+    saveconfig()
+    return f"volume now : {newVolume}", 200
 
 
 

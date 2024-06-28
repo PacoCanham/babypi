@@ -8,6 +8,11 @@ import { IconBell, IconBellOff, IconEye, IconNotification } from "@tabler/icons-
 // volume from parent
 
 export default function Header(props){
+
+    function toggleNotifications(){
+        props.setSettings({notifications:!props.settings.notifications})
+        fetch("/toggleNotifications")
+    }
     
 
     return(
@@ -23,7 +28,7 @@ export default function Header(props){
             <Title flex="flex-start">Hello {props.settings.username}</Title>
         </Group>
         <Group>
-            <Text onClick={()=>{props.setSettings({notifications:!props.settings.notifications})}}>
+            <Text onClick={toggleNotifications}>
             {(props.settings.notifications)?<IconBell/>:<IconBellOff/>}</Text>
             <Text >{props.settings.temp}°C </Text>
             <Text >{props.settings.viewers}</Text>

@@ -9,15 +9,15 @@ export default function Controls(){
     spacing='xs'
     verticalSpacing='xs'>
         <Group justify="center" gap='xs'>
-    <Button id="/up" w={221} onClick={()=>fetch("/up")}>{<IconArrowUp/>}</Button>	
+    <Button w={221} onClick={()=>fetch("/move/up")}>{<IconArrowUp/>}</Button>	
     </Group>	
             <Group justify="center" gap='xs'>
-                <Button w={200/3} id="/left" onClick={()=>fetch("/left")}>{<IconArrowLeft/>}</Button>				
-                <Button w={203/3} id="/flip" onClick={()=>fetch("/flip")}>FLIP</Button>				
-                <Button w={200/3} id="/right" onClick={()=>fetch("/right")}>{<IconArrowRight/>}</Button>			
+                <Button w={200/3} onClick={()=>fetch("/move/left")}>{<IconArrowLeft/>}</Button>				
+                <Button w={203/3} onClick={()=>fetch("/flip")}>FLIP</Button>				
+                <Button w={200/3} onClick={()=>fetch("/move/right")}>{<IconArrowRight/>}</Button>			
             </Group>
             <Group justify="center" gap='xs'>
-    <Button id="/down" w={221} onClick={()=>fetch("/down")}>{<IconArrowDown/>}</Button>		
+    <Button w={221} onClick={()=>fetch("/move/down")}>{<IconArrowDown/>}</Button>		
     </Group>		
     </SimpleGrid>
     )
