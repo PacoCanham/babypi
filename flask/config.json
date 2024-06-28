@@ -1,1 +1,1 @@
-{"UDValue": 2200, "LRValue": 1350, "flipped": false, "led": true, "volume": 21, "trackname": "30-Stream-60min.mp3", "playstate": false}
+{"camera": {"UDValue": 1800, "LRValue": 1500, "flipped": false, "led": false, "volume": 20, "trackname": "30-Stream-60min.mp3", "playstate": false}, "notifications": {"move_threshold": 60, "detection_threshold": 1000, "movement_count_low": 4, "movement_count_high": 30, "delaytime_low": 600, "delaytime_high": 600, "enabled": true}}

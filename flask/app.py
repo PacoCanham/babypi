@@ -51,7 +51,7 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 user_activity_log = {}
-settings = {'camera' : {'UDValue':7.5, 'LRValue':7.5, 'flipped':False, 'led':False, 'volume': 20, 'trackname':'30-Stream-60min.mp3', 'playstate':False}, 'notifications':{"move_threshold":60, "detection_threshold":1000, "movement_count_low" : 4, "movement_count_high":30,"delaytime_low":600,"delaytime_high":600, "enabled": True}}
+settings = {'camera' : {'UDValue':1750, 'LRValue':1750, 'flipped':False, 'led':False, 'volume': 20, 'trackname':'30-Stream-60min.mp3', 'playstate':False}, 'notifications':{"move_threshold":60, "detection_threshold":1000, "movement_count_low" : 4, "movement_count_high":30,"delaytime_low":600,"delaytime_high":600, "enabled": True}}
 
 
 tuningpath = os.path.join(os.getcwd(),"tuning.json")
