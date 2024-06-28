@@ -24,7 +24,7 @@ export default function Header(props){
       align="center"
       direction="row"
       wrap="nowrap">
-        <Group hiddenFrom="sm">
+        <Group visibleFrom="sm">
             <Title flex="flex-start">Hello {props.settings.username}</Title>
         </Group>
         <Group>
