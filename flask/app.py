@@ -123,7 +123,7 @@ def detect_movement():
         try:
             for curUser in ["paco", "vee"]:
                 if settings["notifications"]['video'][curUser.capitalize()]["enabled"] == True:
-                    print(f"notifications enabled for {curUser}")
+                    # print(f"notifications enabled for {curUser}")
                     image1 = output.return_array()
                     sleep(0.25)
                     image2 = output.return_array()
@@ -172,12 +172,14 @@ def detect_movement():
                         movement_count = 0
                 else:
                     loadconfig()
-                    sleep(5)
+                    if settings["notifications"]['video']["Paco"]["enabled"] == False and settings["notifications"]['video']["Vee"]["enabled"]  == False:
+                        sleep(5)
                 sleep(0.5)
         except Exception as e:
             print("Waiting for first frame")
             print(e)
             sleep(5)
+            
 
 mov = threading.Thread(target=detect_movement)
 mov.start()
