@@ -6,7 +6,7 @@ from flask_session import Session
 
 
 def saveconfig():
-    with open ("../config.json", "w") as config:
+    with open ("config.json", "w") as config:
         json.dump(settings, config)
         
 @app.route("/getAudioConfig")
