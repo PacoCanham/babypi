@@ -46,14 +46,15 @@ def getVideoConf():
 @app.route("/applyVideo", methods=["POST"])
 @login_required
 def applyVideo():
-    data = request.json
+    # data = request.json
+    settings['video'] = request.json 
     print(settings)
     return "OK"
 
 @app.route("/applyAudio", methods=["POST"])
 @login_required
 def applyAudio():
-    data = request.json
-    print(data)
+    settings['audio'] = request.json 
+    print(settings)
     return "OK"
 
