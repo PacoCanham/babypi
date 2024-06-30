@@ -327,11 +327,6 @@ def led_on_off():
 def get_notifications_settings():
     return jsonify(settings["notifications"])
 
-@app.route("/toggleNotifications")
-@login_required
-def toggleNotifications():
-    settings["notifications"]["enabled"] = not settings["notifications"]["enabled"]
-
 def loadconfig():
     try:
         with open ("config.json", "r") as config:
