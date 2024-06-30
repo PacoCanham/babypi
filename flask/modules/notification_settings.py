@@ -8,42 +8,39 @@ from flask_session import Session
 @app.route("/getAudioConfig")
 @login_required
 def getAudioConf():
-    return jsonify({Vee: {
-        delayLow: 600,
-        delayHigh: 1800,
-        volumeLow: 100,
-        volumeHigh: 1000,
-        sampleLength: 3,
-        enabled : True
-
+    return jsonify({'Vee': {
+        'delayLow': 600,
+        'delayHigh': 1800,
+        'volumeLow': 100,
+        'volumeHigh': 1000,
+        'sampleLength': 3,
+        'enabled' : True
     },
-    Paco: {
-        delayLow: 600,
-        delayHigh: 1800,
-        volumeLow: 100,
-        volumeHigh: 1000,
-        sampleLength: 3,
-        enabled : True
-
+    'Paco': {
+        'delayLow': 600,
+        'delayHigh': 1800,
+        'volumeLow': 100,
+        'volumeHigh': 1000,
+        'sampleLength': 3,
+        'enabled' : True
     }})
 
 @app.route("/getVideoConfig")
 @login_required
 def getVideoConf():
-      return {Vee: {
-        movThres: 60,
-        movNumLow: 3,
-        movNumHigh: 30,
-        notificationDelay: 600,
-        enabled : True
-
+      return {'Vee': {
+        'movThres': 60,
+        'movNumLow': 3,
+        'movNumHigh': 30,
+        'notificationDelay': 600,
+        'enabled' : True
     },
-    Paco: {
-        movThres: 250,
-        movNumLow: 3,
-        movNumHigh: 30,
-        notificationDelay: 600,
-        enabled : True
+    'Paco': {
+        'movThres': 250,
+        'movNumLow': 3,
+        'movNumHigh': 30,
+        'notificationDelay': 600,
+        'enabled' : True
     }}
 
 @app.route("/applyVideo", methods=["POST"])
