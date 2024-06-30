@@ -43,11 +43,12 @@ export default function AppSh() {
                     temp: dictionary.temp,
                     volume: dictionary.volume,
                     playstate: dictionary.playstate,
+                    notifications: dictionary.notifications
                 });
             });
         fetch("/getNotificationEnabled")
             .then((response) => response.json())
-            .then((data) => setSettings({ notifications: data.both_enabled }));
+            .then((data) => setSettings({notifications: data.both_enabled }));
     };
 
     const getUpdates = () => {

@@ -9,15 +9,15 @@ def saveconfig():
     with open ("config.json", "w") as config:
         json.dump(settings, config)
 
-@app.route("/getNotificationEnabled")
-@login_required
-def userNotifcationState():
-    if session['username'].capitalize() in ["Paco", 'Vee']:
-        username= session['username'].capitalize()
+# @app.route("/getNotificationEnabled")
+# @login_required
+def userNotifcationState(current_username):
+    if current_username.capitalize() in ["Paco", 'Vee']:
+        username= current_username.capitalize()
         if settings['notifications']["audio"][username]['enabled'] == True and settings['notifications']["video"][username]['enabled'] == True :
-            return jsonify({"both_enabled" : True})
+            return True
         else:
-            return jsonify({"both_enabled" : False})
+            return False
 
 @app.route("/toggleNotifications")
 @login_required

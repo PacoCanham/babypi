@@ -378,7 +378,8 @@ def register():
 @app.route("/getOnce")
 def getOnce():
     username = session["username"]
-    return jsonify({"username" : username.capitalize(), "led":settings["camera"]["led"], "volume":settings["camera"]["volume"], "playstate":settings["camera"]["playstate"]})
+    notState = modules.notification_settings.userNotifcationState(username)
+    return jsonify({"username" : username.capitalize(), "led":settings["camera"]["led"], "volume":settings["camera"]["volume"], "playstate":settings["camera"]["playstate"], "notifications":notState})
 
 @app.route("/logout")
 def logout():
