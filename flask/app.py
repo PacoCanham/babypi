@@ -116,69 +116,69 @@ import modules.notification_settings
 
 # settings["notifications"] = {"move_threshold":60, "detection_threshold":1000, "movement_count_low" : 4, "movement_count_high":30,"delaytime_low":600,"delaytime_high":600}
 
-def detect_movement(curUser):
+def detect_movement():
     movement_count = 0
     lastNotification = 0
     while True:
         try:
-            if settingssettings["notifications"]['video'][curUser.capitalize()]["enabled"] == True:
-                image1 = output.return_array()
-                sleep(0.25)
-                image2 = output.return_array()
-                # Convert the images to grayscale
-                gray1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
-                gray2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
+            for curUser in ["paco", "vee"]:
+                if settingssettings["notifications"]['video'][curUser.capitalize()]["enabled"] == True:
+                    image1 = output.return_array()
+                    sleep(0.25)
+                    image2 = output.return_array()
+                    # Convert the images to grayscale
+                    gray1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
+                    gray2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
 
-                # Compute the absolute difference between the two images
-                diff = cv2.absdiff(gray1, gray2)
+                    # Compute the absolute difference between the two images
+                    diff = cv2.absdiff(gray1, gray2)
 
-                # Apply a binary threshold to the difference (you can adjust the threshold value as needed)
-                _, thresholded_diff = cv2.threshold(diff, settingssettings["notifications"]['video'][curUser.capitalize()]["move_threshold"], 255, cv2.THRESH_BINARY)
+                    # Apply a binary threshold to the difference (you can adjust the threshold value as needed)
+                    _, thresholded_diff = cv2.threshold(diff, settingssettings["notifications"]['video'][curUser.capitalize()]["move_threshold"], 255, cv2.THRESH_BINARY)
 
-                # Count the number of white pixels in the thresholded image
-                white_pixels = np.sum(thresholded_diff == 255)
+                    # Count the number of white pixels in the thresholded image
+                    white_pixels = np.sum(thresholded_diff == 255)
 
-                if white_pixels > settingssettings["notifications"]['video'][curUser.capitalize()]["detection_threshold"] :
-                    movement_count += 1
-                    print(f"Motion Detected {movement_count} times")
-                    if movement_count == settingssettings["notifications"]['video'][curUser.capitalize()]["movement_count_low"] :
-                        if time() - lastNotification >= settingssettings["notifications"]['video'][curUser.capitalize()]["delaytime_low"]:  # 600 seconds = 10 minutes
-                            priority = '3'
-                            title = "Movement Detected"
-                            tags = "warning"
-                            lastP3notification = time()  # Update the timestamp
-                            requests.put("https://192.168.4.182:8181/babycam",
-                            data=output.return_bytes().getvalue(),
-                            headers={ "Filename": "Blanca",
-                            "Title" : title,
-                            "Tags" : tags,
-                            "Priority" : priority
-                            })
-                    elif movement_count == settingssettings["notifications"]['video'][curUser.capitalize()]["movement_count_high"] :
-                        if time() - lastNotification >= settingssettings["notifications"]['video'][curUser.capitalize()]["delaytime_high"]:  # 600 seconds = 10 minutes
-                            priority = '4'
-                            title = f'Continuous Movement (Over {settings["notifications"]["video"][session["username"].capitalize()]["movement_count_high"]} Seconds!)'
-                            tags = "bangbang"
-                            requests.put("https://192.168.4.182:8181/babycam",
-                            data=output.return_bytes().getvalue(),
-                            headers={ "Filename": "Blanca",
-                            "Title" : title,
-                            "Tags" : tags,
-                            "Priority" : priority
-                            })
+                    if white_pixels > settingssettings["notifications"]['video'][curUser.capitalize()]["detection_threshold"] :
+                        movement_count += 1
+                        print(f"Motion Detected {movement_count} times")
+                        if movement_count == settingssettings["notifications"]['video'][curUser.capitalize()]["movement_count_low"] :
+                            if time() - lastNotification >= settingssettings["notifications"]['video'][curUser.capitalize()]["delaytime_low"]:  # 600 seconds = 10 minutes
+                                priority = '3'
+                                title = "Movement Detected"
+                                tags = "warning"
+                                lastP3notification = time()  # Update the timestamp
+                                requests.put(f"https://192.168.4.182:8181/babycam{curUser.capitalize()}",
+                                data=output.return_bytes().getvalue(),
+                                headers={ "Filename": "Blanca",
+                                "Title" : title,
+                                "Tags" : tags,
+                                "Priority" : priority
+                                })
+                        elif movement_count == settingssettings["notifications"]['video'][curUser.capitalize()]["movement_count_high"] :
+                            if time() - lastNotification >= settingssettings["notifications"]['video'][curUser.capitalize()]["delaytime_high"]:  # 600 seconds = 10 minutes
+                                priority = '4'
+                                title = f'Continuous Movement (Over {settings["notifications"]["video"][session["username"].capitalize()]["movement_count_high"]} Seconds!)'
+                                tags = "bangbang"
+                                requests.put(f"https://192.168.4.182:8181/babycam{curUser.capitalize()}",
+                                data=output.return_bytes().getvalue(),
+                                headers={ "Filename": "Blanca",
+                                "Title" : title,
+                                "Tags" : tags,
+                                "Priority" : priority
+                                })
+                    else:
+                        movement_count = 0
                 else:
-                    movement_count = 0
-            else:
-                loadconfig()
-                sleep(5)
-            sleep(0.5)
+                    loadconfig()
+                    sleep(5)
+                sleep(0.5)
         except Exception as e:
             print("Waiting for first frame")
             print(e)
             sleep(5)
 
-username = session['username']
-mov = threading.Thread(target=detect_movement, args=(username,))
+mov = threading.Thread(target=detect_movement)
 mov.start()
 
 
