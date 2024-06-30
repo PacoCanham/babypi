@@ -174,6 +174,7 @@ def detect_movement():
             sleep(0.5)
         except Exception as e:
             print("Waiting for first frame")
+            print(e)
             sleep(5)
 
 mov = threading.Thread(target=detect_movement)
