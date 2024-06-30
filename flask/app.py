@@ -121,7 +121,7 @@ def detect_movement():
     lastNotification = 0
     while True:
         try:
-            if settings["notifications"]["enabled"] == True:
+            if settings["notifications"]['video'][session['username'].capitalize()]["enabled"] == True:
                 image1 = output.return_array()
                 sleep(0.25)
                 image2 = output.return_array()
@@ -133,16 +133,16 @@ def detect_movement():
                 diff = cv2.absdiff(gray1, gray2)
 
                 # Apply a binary threshold to the difference (you can adjust the threshold value as needed)
-                _, thresholded_diff = cv2.threshold(diff, settings["notifications"]["move_threshold"], 255, cv2.THRESH_BINARY)
+                _, thresholded_diff = cv2.threshold(diff, settings["notifications"]['video'][session['username'].capitalize()]["move_threshold"], 255, cv2.THRESH_BINARY)
 
                 # Count the number of white pixels in the thresholded image
                 white_pixels = np.sum(thresholded_diff == 255)
 
-                if white_pixels > settings["notifications"]["detection_threshold"] :
+                if white_pixels > settings["notifications"]['video'][session['username'].capitalize()]["detection_threshold"] :
                     movement_count += 1
                     print(f"Motion Detected {movement_count} times")
-                    if movement_count == settings["notifications"]["movement_count_low"] :
-                        if time() - lastNotification >= settings["notifications"]["delaytime_low"]:  # 600 seconds = 10 minutes
+                    if movement_count == settings["notifications"]['video'][session['username'].capitalize()]["movement_count_low"] :
+                        if time() - lastNotification >= settings["notifications"]['video'][session['username'].capitalize()]["delaytime_low"]:  # 600 seconds = 10 minutes
                             priority = '3'
                             title = "Movement Detected"
                             tags = "warning"
@@ -154,10 +154,10 @@ def detect_movement():
                             "Tags" : tags,
                             "Priority" : priority
                             })
-                    elif movement_count == settings["notifications"]["movement_count_high"] :
-                        if time() - lastNotification >= settings["notifications"]["delaytime_high"]:  # 600 seconds = 10 minutes
+                    elif movement_count == settings["notifications"]['video'][session['username'].capitalize()]["movement_count_high"] :
+                        if time() - lastNotification >= settings["notifications"]['video'][session['username'].capitalize()]["delaytime_high"]:  # 600 seconds = 10 minutes
                             priority = '4'
-                            title = f'Continuous Movement (Over {settings["notifications"]["movement_count_high"]} Seconds!)'
+                            title = f'Continuous Movement (Over {settings["notifications"]['video'][session['username'].capitalize()]["movement_count_high"]} Seconds!)'
                             tags = "bangbang"
                             requests.put("https://192.168.4.182:8181/babycam",
                             data=output.return_bytes().getvalue(),
@@ -325,7 +325,7 @@ def led_on_off():
 @app.route("/getNotificationSettings")
 @login_required
 def get_notifications_settings():
-    return jsonify(settings["notifications"])
+    return jsonify(settings["notifications"]['video'][session['username'].capitalize()])
 
 def loadconfig():
     try:
