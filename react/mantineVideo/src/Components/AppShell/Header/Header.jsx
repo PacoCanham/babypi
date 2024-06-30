@@ -14,7 +14,6 @@ export default function Header(props){
         fetch("/toggleNotifications")
     }
     
-
     return(
     <Container fluid h={"100%"} bg="var(--mantine-color-blue-light)">
        <Flex

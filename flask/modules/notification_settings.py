@@ -8,7 +8,30 @@ from flask_session import Session
 def saveconfig():
     with open ("config.json", "w") as config:
         json.dump(settings, config)
-        
+
+@app.route("/getNotificationEnabled")
+@login_required
+def userNotifcationState():
+    if session['username'].lower() in ["paco", 'vee']:
+        requested_user = session['username'].lower()
+        if settings['notifications']["audio"][username]['enabled'] == True and settings['notifications']["video"][username]['enabled'] == True :
+            return jsonify({"both_enabled" : True})
+        else:
+            return jsonify({"both_enabled" : False})
+
+@app.route("/toggleNotifications")
+@login_required
+def toggleNotifications():
+    if session['username'].lower() in ["paco", 'vee']:
+        if settings['notifications']["audio"][username]['enabled'] == True and settings['notifications']["video"][username]['enabled'] == True :
+            settings['notifications']['video'][session['username'].capitalize()]['enabled'] = False  
+            settings['notifications']['audio'][session['username'].capitalize()]['enabled'] = False
+        else:
+            settings['notifications']['video'][session['username'].capitalize()]['enabled'] = True
+            settings['notifications']['audio'][session['username'].capitalize()]['enabled'] = True
+        saveconfig()
+    return "ok", 200
+    
 @app.route("/getAudioConfig")
 @login_required
 def getAudioConf():

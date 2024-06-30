@@ -102,8 +102,6 @@ picam.start_recording(MJPEGEncoder(), FileOutput(output))
 #picam.start()
 noise_player = CustomAudioPlayer()
 
-
-
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -117,8 +115,8 @@ import modules.notification_settings
 # settings["notifications"] = {"move_threshold":60, "detection_threshold":1000, "movNumLow" : 4, "movNumHigh":30,"notificationDelay":600,"notificationDelay":600}
 
 def detect_movement():
-    movement_count = 0
-    lastNotification = 0
+    movement_count = {'paco' : 0, 'vee' : 0}
+    lastNotification = {'paco' : {'low' : 0, 'high' : 0}, 'vee' : {'low' : 0, 'high' : 0}}
     while True:
         try:
             for curUser in ["paco", "vee"]:
@@ -141,10 +139,10 @@ def detect_movement():
                     white_pixels = np.sum(thresholded_diff == 255)
 
                     if white_pixels > 1000:
-                        movement_count += 1
-                        print(f"Motion Detected {movement_count} times")
-                        if movement_count == settings["notifications"]['video'][curUser.capitalize()]["movNumLow"] :
-                            if time() - lastNotification >= settings["notifications"]['video'][curUser.capitalize()]["notificationDelay"]:  # 600 seconds = 10 minutes
+                        movement_count[curUser] += 1
+                        print(f"Motion Detected {movement_count[curUser]} times")
+                        if movement_count[curUser] == settings["notifications"]['video'][curUser.capitalize()]["movNumLow"] :
+                            if time() - lastNotification[curUser]['low'] >= settings["notifications"]['video'][curUser.capitalize()]["notificationDelay"]:  # 600 seconds = 10 minutes
                                 priority = '3'
                                 title = "Movement Detected"
                                 tags = "warning"
@@ -156,8 +154,9 @@ def detect_movement():
                                 "Tags" : tags,
                                 "Priority" : priority
                                 })
-                        elif movement_count == 1000 :
-                            if time() - lastNotification >= settings["notifications"]['video'][curUser.capitalize()]["notificationDelay"]:  # 600 seconds = 10 minutes
+                                lastNotification[curUser]['low'] == time()
+                        elif movement_count[curUser] == 1000 :
+                            if time() - lastNotification[curUser]['high'] >= settings["notifications"]['video'][curUser.capitalize()]["notificationDelay"]:  # 600 seconds = 10 minutes
                                 priority = '4'
                                 title = f'Continuous Movement (Over {settings["notifications"]["video"][session["username"].capitalize()]["movNumHigh"]} Seconds!)'
                                 tags = "bangbang"
@@ -168,8 +167,9 @@ def detect_movement():
                                 "Tags" : tags,
                                 "Priority" : priority
                                 })
+                                lastNotification[curUser]['high'] == time()
                     else:
-                        movement_count = 0
+                        movement_count[curUser] = 0
                 else:
                     loadconfig()
                     if settings["notifications"]['video']["Paco"]["enabled"] == False and settings["notifications"]['video']["Vee"]["enabled"]  == False:
@@ -184,14 +184,6 @@ def detect_movement():
 mov = threading.Thread(target=detect_movement)
 mov.start()
 
-
-@app.route("/toggleNotifications")
-@login_required
-def toggleNotifications():
-    settings['notifications']['video'][session['username'].capitalize()]['enabled'] = not settings['notifications']['video'][session['username'].capitalize()]['enabled']  
-    settings['notifications']['audio'][session['username'].capitalize()]['enabled'] = not settings['notifications']['audio'][session['username'].capitalize()]['enabled']  
-    saveconfig()
-    return "ok", 200
     
 @app.route("/hourly")
 @login_required
