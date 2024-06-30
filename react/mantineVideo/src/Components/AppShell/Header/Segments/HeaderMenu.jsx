@@ -1,4 +1,5 @@
-import { Flex, Menu, Button, rem} from "@mantine/core";
+import { Flex, Menu, Button, rem, Modal} from "@mantine/core";
+import { useMediaQuery, useDisclosure } from "@mantine/hooks";
 
 import {
     IconSettings,
@@ -12,14 +13,22 @@ import {
     IconMicrophone2,
   } from '@tabler/icons-react';
 import VideoNotificationModal from "./VideoNotificationModal";
-import { useDisclosure } from "@mantine/hooks";
+import AudioNotificationModal from "./AudioNotificationModal";
 
-export default function HeaderMenu(props){    
+  
+  export default function HeaderMenu(props){    
+    const [notificationsModal, {open, close}] = useDisclosure(false);
+    const [isVideo, changeVideo] = useDisclosure(true)
+    const isMobile = useMediaQuery('(max-width: 50em)');
 
     function handleAccount(e){
         e.preventDefault()
         const url = e.currentTarget.id
         window.location.assign(url)
+    }
+
+    function closeVideo(){
+        setVideoOpened.close()
     }
     return(
     <Flex
@@ -52,10 +61,10 @@ export default function HeaderMenu(props){
             <Menu.Divider />
 
             <Menu.Label>Notification Settings</Menu.Label>
-            <Menu.Item leftSection={<IconDeviceCctv style={{ width: rem(14), height: rem(14) }} />}>
+            <Menu.Item onClick={()=>{open(), changeVideo.open()}} leftSection={<IconDeviceCctv style={{ width: rem(14), height: rem(14) }} />}>
             Video Notifications
             </Menu.Item>
-            <Menu.Item leftSection={<IconMicrophone2 style={{ width: rem(14), height: rem(14) }} />}>
+            <Menu.Item onClick={()=>{open(), changeVideo.close()}} leftSection={<IconMicrophone2 style={{ width: rem(14), height: rem(14) }} />}>
             Audio Notification
             </Menu.Item>
             <Menu.Divider />
@@ -69,6 +78,16 @@ export default function HeaderMenu(props){
             </Menu.Item>
         </Menu.Dropdown>
         </Menu>
+        <Modal
+            opened={notificationsModal}
+            onClose={close}
+            title={`${(isVideo)?"Video":"Audio"} Notification Settings`}
+            size="xl"
+            fullScreen={isMobile}
+            transitionProps={{ transition: 'fade', duration: 200 }}
+        >
+        {isVideo ? <VideoNotificationModal/>: <AudioNotificationModal/>}
+</Modal>
         </Flex>
     )
 }

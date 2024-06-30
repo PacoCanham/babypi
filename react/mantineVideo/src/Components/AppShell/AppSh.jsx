@@ -1,13 +1,13 @@
-import { AppShell, Burger } from '@mantine/core';
+import { AppShell, Modal  } from '@mantine/core';
 import { useDisclosure, useSetState } from '@mantine/hooks';
 import Header from './Header/Header';
 import MainPage from './Main/MainPage';
 import { useEffect } from 'react';
 
 export default function AppSh(){
-  const [opened, { toggle }] = useDisclosure();
-  const [settings, setSettings] = useSetState({username:"", ledBool:true, temp:21, volume:10, viewers:0, notifications:true, playstate:false})
+     const [settings, setSettings] = useSetState({username:"", ledBool:true, temp:21, volume:10, viewers:0, notifications:true, playstate:false})
   const [notificationSettings, setNotificationSettings] = useSetState({vee:{},paco:{}})
+  const [opened, { open, close }] = useDisclosure(true);
 
   const [displayed, setDisplayed] = useSetState({
     leds:false,
@@ -49,7 +49,10 @@ const getUpdates = () => {
       <AppShell.Header>
         <Header displayed={displayed} setDisplayed={setDisplayed} settings={settings} setSettings={setSettings}/>
       </AppShell.Header>
-      <AppShell.Main><MainPage settings={settings} setSettings={setSettings} displayed={displayed}/></AppShell.Main>
+      <AppShell.Main>
+
+        <MainPage settings={settings} setSettings={setSettings} displayed={displayed}/>
+      </AppShell.Main>
     </AppShell>
   );
 }

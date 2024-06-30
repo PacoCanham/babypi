@@ -24,8 +24,8 @@ export default function Header(props){
       align="center"
       direction="row"
       wrap="nowrap">
-        <Group visibleFrom="sm">
-            <Title flex="flex-start">Hello {props.settings.username}</Title>
+        <Group>
+            <Title visibleFrom="sm" flex="flex-start">Hello {props.settings.username}</Title>
         </Group>
         <Group>
             <Text onClick={toggleNotifications}>

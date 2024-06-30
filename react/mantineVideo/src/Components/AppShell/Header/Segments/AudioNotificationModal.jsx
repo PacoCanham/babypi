@@ -8,38 +8,47 @@ import {
     Stack,
     Text,
 } from "@mantine/core";
-import { useMediaQuery, useSetState } from "@mantine/hooks";
+import { useSetState } from "@mantine/hooks";
 import { useEffect, useState } from "react";
+
 const defaultNotificationDict = {
     Vee: {
-        movThres: 60,
-        movNumLow: 3,
-        movNumHigh: 30,
-        notificationDelay: 600,
+        delayLow: 600,
+        delayHigh: 1800,
+        volumeLow: 100,
+        volumeHigh: 1000,
+        sampleLength: 3,
         enabled: true,
     },
     Paco: {
-        movThres: 250,
-        movNumLow: 3,
-        movNumHigh: 30,
-        notificationDelay: 600,
+        delayLow: 600,
+        delayHigh: 1800,
+        volumeLow: 100,
+        volumeHigh: 1000,
+        sampleLength: 3,
         enabled: true,
     },
 };
-export default function VideoNotificationModal(props) {
+
+export default function AudioNotificationModal(props) {
     const [notificationDict, setNotificationDict] = useSetState(
         defaultNotificationDict
     );
+
     const [user, setUser] = useState("Paco");
 
     async function initObjects() {
-        await fetch("/getVideoConfig")
+        await fetch("/getAudioConfig")
             .then((response) => response.json())
             .then((data) => setNotificationDict(data));
     }
 
-    async function applyVideo() {
-        await fetch("/applyVideo", {
+    useEffect(() => {
+        initObjects();
+    }, []);
+
+    async function applyAudio() {
+        await fetch("/applyAudio", {
             method: "POST",
             headers: {
                 Accept: "application/json",
@@ -49,13 +58,13 @@ export default function VideoNotificationModal(props) {
         });
     }
 
-    function cancelVideo() {
+    function cancelAudio() {
         initObjects();
     }
 
-    async function resetVideo() {
+    async function resetAudio() {
         setNotificationDict(defaultNotificationDict);
-        await fetch("/applyVideo", {
+        await fetch("/applyAudio", {
             method: "POST",
             headers: {
                 Accept: "application/json",
@@ -64,10 +73,6 @@ export default function VideoNotificationModal(props) {
             body: JSON.stringify(defaultNotificationDict),
         });
     }
-
-    useEffect(() => {
-        initObjects();
-    }, []);
 
     return (
         <Box>
@@ -106,157 +111,181 @@ export default function VideoNotificationModal(props) {
                         justify="flex-start"
                         gap="xs"
                     >
-                        <Text>Movement Threshold</Text>
+                        <Text>Quiet noise Delay</Text>
                         <Slider
-                            min={0}
-                            max={255}
-                            step={5}
-                            name="movThres"
-                            value={notificationDict[user].movThres}
+                            value={notificationDict[user].delayLow}
                             color="blue"
                             radius="md"
-                            label={(v) => `${((v / 255) * 100).toFixed(0)}%`}
-                            marks={[
-                                { value: 0, label: "0%" },
-                                { value: 127.5, label: "50%" },
-                                { value: 255, label: "100%" },
-                            ]}
-                            onChangeEnd={(v) =>
-                                setNotificationDict({
-                                    [user]: {
-                                        movThres: v,
-                                        movNumLow:
-                                            notificationDict[user].movNumLow,
-                                        movNumHigh:
-                                            notificationDict[user].movNumHigh,
-                                        notificationDelay:
-                                            notificationDict[user]
-                                                .notificationDelay,
-                                        enabled: notificationDict[user].enabled,
-                                    },
-                                })
-                            }
-                        />
-                    </Stack>
-                    <Stack
-                        h={300}
-                        bg="var(--mantine-color-body)"
-                        align="stretch"
-                        justify="flex-start"
-                        gap="xs"
-                    >
-                        <Text>
-                            Number of seconds of movement before Low
-                            Notification
-                        </Text>
-                        <Slider
                             min={1}
-                            max={notificationDict[user].movNumHigh}
-                            name="movNumLow"
-                            value={notificationDict[user].movNumLow}
-                            step={1}
-                            color="blue"
-                            radius="md"
-                            label={(v) => `${v}s`}
-                            marks={[
-                                { value: 1, label: "1s" },
-                                { value: 10, label: "10s" },
-                                { value: 30, label: "30s" },
-                            ]}
+                            max={notificationDict[user].delayHigh}
                             onChangeEnd={(v) =>
                                 setNotificationDict({
                                     [user]: {
-                                        movThres:
-                                            notificationDict[user].movThres,
-                                        movNumLow: v,
-                                        movNumHigh:
-                                            notificationDict[user].movNumHigh,
-                                        notificationDelay:
-                                            notificationDict[user]
-                                                .notificationDelay,
+                                        delayLow: v,
+                                        delayHigh:
+                                            notificationDict[user].delayHigh,
+                                        volumeLow:
+                                            notificationDict[user].volumeLow,
+                                        volumeHigh:
+                                            notificationDict[user].volumeHigh,
+                                        sampleLength:
+                                            notificationDict[user].sampleLength,
                                         enabled: notificationDict[user].enabled,
                                     },
                                 })
                             }
-                        />
-                    </Stack>
-                    <Stack
-                        h={300}
-                        bg="var(--mantine-color-body)"
-                        align="stretch"
-                        justify="flex-start"
-                        gap="xs"
-                    >
-                        <Text>
-                            Number of seconds of movement before High
-                            Notification
-                        </Text>
-                        <Slider
-                            min={notificationDict[user].movNumLow}
-                            max={60}
-                            name="movNumHigh"
-                            value={notificationDict[user].movNumHigh}
-                            step={1}
-                            color="blue"
-                            radius="md"
-                            onChangeEnd={(v) =>
-                                setNotificationDict({
-                                    [user]: {
-                                        movThres:
-                                            notificationDict[user].movThres,
-                                        movNumLow:
-                                            notificationDict[user].movNumLow,
-                                        movNumHigh: v,
-                                        notificationDelay:
-                                            notificationDict[user]
-                                                .notificationDelay,
-                                        enabled: notificationDict[user].enabled,
-                                    },
-                                })
-                            }
-                            label={(v) => `${v}s`}
-                            marks={[
-                                { value: 1, label: "1s" },
-                                { value: 30, label: "30s" },
-                                { value: 60, label: "60s" },
-                            ]}
-                        />
-                    </Stack>
-                    <Stack
-                        h={300}
-                        bg="var(--mantine-color-body)"
-                        align="stretch"
-                        justify="flex-start"
-                        gap="xs"
-                    >
-                        <Text>Number of minutes between Low Notifications</Text>
-                        <Slider
-                            min={60}
-                            max={3600}
-                            step={60}
-                            name="notificationDelay"
-                            value={notificationDict[user].notificationDelay}
-                            color="blue"
-                            radius="md"
-                            onChangeEnd={(v) =>
-                                setNotificationDict({
-                                    [user]: {
-                                        movThres:
-                                            notificationDict[user].movThres,
-                                        movNumLow:
-                                            notificationDict[user].movNumLow,
-                                        movNumHigh:
-                                            notificationDict[user].movNumHigh,
-                                        notificationDelay: v,
-                                        enabled: notificationDict[user].enabled,
-                                    },
-                                })
-                            }
+                            step={10}
                             label={(v) => `${v / 60}m`}
                             marks={[
+                                { value: 1, label: "1s" },
                                 { value: 60, label: "1m" },
+                                { value: 600, label: "10m" },
                                 { value: 1800, label: "30m" },
-                                { value: 3600, label: "60m" },
+                                { value: 3600, label: "1hr" },
+                            ]}
+                        />
+                    </Stack>
+                    <Stack
+                        h={300}
+                        bg="var(--mantine-color-body)"
+                        align="stretch"
+                        justify="flex-start"
+                        gap="xs"
+                    >
+                        <Text>Loud Noise Delay</Text>
+                        <Slider
+                            value={notificationDict[user].delayHigh}
+                            color="blue"
+                            radius="md"
+                            min={notificationDict[user].delayLow}
+                            max={3600}
+                            onChangeEnd={(v) =>
+                                setNotificationDict({
+                                    [user]: {
+                                        delayLow:
+                                            notificationDict[user].delayLow,
+                                        delayHigh: v,
+                                        volumeLow:
+                                            notificationDict[user].volumeLow,
+                                        volumeHigh:
+                                            notificationDict[user].volumeHigh,
+                                        sampleLength:
+                                            notificationDict[user].sampleLength,
+                                        enabled: notificationDict[user].enabled,
+                                    },
+                                })
+                            }
+                            step={10}
+                            label={(v) => `${v / 1000}s`}
+                            marks={[
+                                { value: 20, label: "20%" },
+                                { value: 50, label: "50%" },
+                                { value: 80, label: "80%" },
+                            ]}
+                        />
+                    </Stack>
+                    <Stack
+                        h={300}
+                        bg="var(--mantine-color-body)"
+                        align="stretch"
+                        justify="flex-start"
+                        gap="xs"
+                    >
+                        <Text>Low Notification Volume</Text>
+                        <Slider
+                            value={notificationDict[user].volumeLow}
+                            color="blue"
+                            radius="md"
+                            min={10}
+                            max={notificationDict[user].volumeHigh}
+                            onChangeEnd={(v) =>
+                                setNotificationDict({
+                                    [user]: {
+                                        delayLow:
+                                            notificationDict[user].delayLow,
+                                        delayHigh:
+                                            notificationDict[user].delayHigh,
+                                        volumeLow: v,
+                                        volumeHigh:
+                                            notificationDict[user].volumeHigh,
+                                        sampleLength:
+                                            notificationDict[user].sampleLength,
+                                        enabled: notificationDict[user].enabled,
+                                    },
+                                })
+                            }
+                            step={10}
+                        />
+                    </Stack>
+                    <Stack
+                        h={300}
+                        bg="var(--mantine-color-body)"
+                        align="stretch"
+                        justify="flex-start"
+                        gap="xs"
+                    >
+                        <Text>High Notification Volume</Text>
+                        <Slider
+                            value={notificationDict[user].volumeHigh}
+                            color="blue"
+                            radius="md"
+                            min={notificationDict[user].volumeLow}
+                            max={3000}
+                            onChangeEnd={(v) =>
+                                setNotificationDict({
+                                    [user]: {
+                                        delayLow:
+                                            notificationDict[user].delayLow,
+                                        delayHigh:
+                                            notificationDict[user].delayHigh,
+                                        volumeLow:
+                                            notificationDict[user].volumeLow,
+                                        volumeHigh: v,
+                                        sampleLength:
+                                            notificationDict[user].sampleLength,
+                                        enabled: notificationDict[user].enabled,
+                                    },
+                                })
+                            }
+                            step={10}
+                        />
+                    </Stack>
+                    <Stack
+                        h={300}
+                        bg="var(--mantine-color-body)"
+                        align="stretch"
+                        justify="flex-start"
+                        gap="xs"
+                    >
+                        <Text>Lengh of Sample</Text>
+                        <Slider
+                            value={notificationDict[user].sampleLength}
+                            color="blue"
+                            radius="md"
+                            min={1}
+                            max={10}
+                            onChangeEnd={(v) =>
+                                setNotificationDict({
+                                    [user]: {
+                                        delayLow:
+                                            notificationDict[user].delayLow,
+                                        delayHigh:
+                                            notificationDict[user].delayHigh,
+                                        volumeLow:
+                                            notificationDict[user].volumeLow,
+                                        volumeHigh:
+                                            notificationDict[user].volumeHigh,
+                                        sampleLength: v,
+                                        enabled: notificationDict[user].enabled,
+                                    },
+                                })
+                            }
+                            step={1}
+                            label={(v) => `${v}s`}
+                            marks={[
+                                { value: 1, label: "1s" },
+                                { value: 5, label: "5s" },
+                                { value: 10, label: "10s" },
                             ]}
                         />
                     </Stack>
@@ -281,7 +310,7 @@ export default function VideoNotificationModal(props) {
                             variant="filled"
                             size="md"
                             radius="lg"
-                            onClick={applyVideo}
+                            onClick={applyAudio}
                         >
                             Apply
                         </Button>
@@ -290,7 +319,7 @@ export default function VideoNotificationModal(props) {
                             color="green"
                             size="md"
                             radius="lg"
-                            onClick={cancelVideo}
+                            onClick={cancelAudio}
                         >
                             Cancel
                         </Button>
@@ -299,7 +328,7 @@ export default function VideoNotificationModal(props) {
                             color="red"
                             size="md"
                             radius="lg"
-                            onClick={resetVideo}
+                            onClick={resetAudio}
                         >
                             Reset
                         </Button>

@@ -1,9 +1,11 @@
-import {Divider, Image } from "@mantine/core";
+import {Box, Divider, Image, Modal } from "@mantine/core";
 import Controls from "./Components/Controls";
 import AudioPlayer from "./Components/AudioPlayer";
 import NoisePlayer from "./Components/NoisePlayer";
+import { useDisclosure } from "@mantine/hooks";
 // {volume, setVolume, playstate, setPlaystate}
 export default function MainPage(props){
+    
     return(<>
         <Image
         src={"/video.mjpg"}

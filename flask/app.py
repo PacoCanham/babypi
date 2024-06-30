@@ -5,7 +5,7 @@ from flask_cors import CORS, cross_origin
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 from time import sleep, time
-from classes import *
+from modules.classes import *
 import pyaudio
 
 from datetime import datetime,timedelta
@@ -51,8 +51,42 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 user_activity_log = {}
-settings = {'camera' : {'UDValue':1750, 'LRValue':1750, 'flipped':False, 'led':False, 'volume': 20, 'trackname':'30-Stream-60min.mp3', 'playstate':False}, 'notifications':{"move_threshold":60, "detection_threshold":1000, "movement_count_low" : 4, "movement_count_high":30,"delaytime_low":600,"delaytime_high":600, "enabled": True}}
+settings = {'camera' : 
+{'UDValue':1750, 'LRValue':1750, 'flipped':False, 'led':False, 
+'volume': 20, 'trackname':'30-Stream-60min.mp3', 'playstate':False}, 
+'notifications':{'video':{Vee: {
+        movThres: 60,
+        movNumLow: 3,
+        movNumHigh: 30,
+        notificationDelay: 600,
+        enabled : True
+    },
+    Paco: {
+        movThres: 250,
+        movNumLow: 3,
+        movNumHigh: 30,
+        notificationDelay: 600,
+        enabled : True
 
+    }}, 'audio':{
+        Vee: {
+        delayLow: 600,
+        delayHigh: 1800,
+        volumeLow: 100,
+        volumeHigh: 1000,
+        sampleLength: 3,
+        enabled : True
+
+    },
+    Paco: {
+        delayLow: 600,
+        delayHigh: 1800,
+        volumeLow: 100,
+        volumeHigh: 1000,
+        sampleLength: 3,
+        enabled : True
+    }
+    }}}
 
 tuningpath = os.path.join(os.getcwd(),"tuning.json")
 #tuningpath = '/home/paco/babypi/flask/tuning.json'
@@ -68,6 +102,8 @@ picam.start_recording(MJPEGEncoder(), FileOutput(output))
 #picam.start()
 noise_player = CustomAudioPlayer()
 
+
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -76,6 +112,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+import modules.notification_settings
 
 # settings["notifications"] = {"move_threshold":60, "detection_threshold":1000, "movement_count_low" : 4, "movement_count_high":30,"delaytime_low":600,"delaytime_high":600}
 
