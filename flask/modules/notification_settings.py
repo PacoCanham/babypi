@@ -34,3 +34,9 @@ def applyAudio():
     saveconfig()
     return "OK"
 
+@app.route("/toggleNotifications")
+@login_required
+def toggleNotifications():
+    settings['notifications'][session['username'].capitalize()]['enabled'] = not settings['notifications'][session['username'].capitalize()]['enabled']  
+    saveconfig()
+
