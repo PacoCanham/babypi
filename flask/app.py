@@ -122,6 +122,7 @@ def detect_movement():
     while True:
         try:
             for curUser in ["paco", "vee"]:
+                print(f"checking for {curUser}")
                 if settings["notifications"]['video'][curUser.capitalize()]["enabled"] == True:
                     image1 = output.return_array()
                     sleep(0.25)
