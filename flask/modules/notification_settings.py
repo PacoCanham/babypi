@@ -13,7 +13,7 @@ def saveconfig():
 @login_required
 def userNotifcationState():
     if session['username'].lower() in ["paco", 'vee']:
-        requested_user = session['username'].lower()
+        username= session['username'].capitalize()
         if settings['notifications']["audio"][username]['enabled'] == True and settings['notifications']["video"][username]['enabled'] == True :
             return jsonify({"both_enabled" : True})
         else:
@@ -23,12 +23,13 @@ def userNotifcationState():
 @login_required
 def toggleNotifications():
     if session['username'].lower() in ["paco", 'vee']:
+        username= session['username'].capitalize()
         if settings['notifications']["audio"][username]['enabled'] == True and settings['notifications']["video"][username]['enabled'] == True :
-            settings['notifications']['video'][session['username'].capitalize()]['enabled'] = False  
-            settings['notifications']['audio'][session['username'].capitalize()]['enabled'] = False
+            settings['notifications']['video'][username]['enabled'] = False  
+            settings['notifications']['audio'][username]['enabled'] = False
         else:
-            settings['notifications']['video'][session['username'].capitalize()]['enabled'] = True
-            settings['notifications']['audio'][session['username'].capitalize()]['enabled'] = True
+            settings['notifications']['video'][username]['enabled'] = True
+            settings['notifications']['audio'][username]['enabled'] = True
         saveconfig()
     return "ok", 200
     
