@@ -1,4 +1,4 @@
-from flask import jsonify, request
+from flask import jsonify, request, session
 import json
 from __main__ import app, login_required, settings
 from functools import wraps
