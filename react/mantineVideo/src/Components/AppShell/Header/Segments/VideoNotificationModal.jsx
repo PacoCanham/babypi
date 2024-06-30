@@ -6,9 +6,10 @@ import {
     SegmentedControl,
     Slider,
     Stack,
+    Switch,
     Text,
 } from "@mantine/core";
-import { useMediaQuery, useSetState } from "@mantine/hooks";
+import { useSetState } from "@mantine/hooks";
 import { useEffect, useState } from "react";
 const defaultNotificationDict = {
     Vee: {
@@ -70,14 +71,34 @@ export default function VideoNotificationModal(props) {
     }, []);
 
     return (
-        <Box>
+        <Box h={"50vh"}>
             <Stack
                 h={300}
                 bg="var(--mantine-color-body)"
                 align="stretch"
                 justify="flex-start"
                 gap="xs"
-            >
+            >                <Stack
+            h={300}
+            bg="var(--mantine-color-body)"
+            align="center"
+            justify="flex-start"
+            gap="xs"
+        >
+            <Switch size="xl" onLabel="ON" offLabel="OFF" checked={notificationDict[user].enabled} onClick={()=>setNotificationDict({
+                                [user]: {
+                                    delayLow: notificationDict[user].delayHigh,
+                                    delayHigh:
+                                        notificationDict[user].delayHigh,
+                                    volumeLow:
+                                        notificationDict[user].volumeLow,
+                                    volumeHigh:
+                                        notificationDict[user].volumeHigh,
+                                    sampleLength:
+                                        notificationDict[user].sampleLength,
+                                    enabled: !notificationDict[user].enabled,
+                                }})} />
+            </Stack>
                 <Stack
                     h={300}
                     bg="var(--mantine-color-body)"
@@ -273,7 +294,7 @@ export default function VideoNotificationModal(props) {
                         mih={50}
                         gap="md"
                         justify="center"
-                        align="center"
+                        align="flex-end"
                         direction="row"
                         wrap="wrap"
                     >
