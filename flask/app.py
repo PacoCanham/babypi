@@ -122,7 +122,7 @@ def detect_movement():
     while True:
         try:
             for curUser in ["paco", "vee"]:
-                if settingssettings["notifications"]['video'][curUser.capitalize()]["enabled"] == True:
+                if settings["notifications"]['video'][curUser.capitalize()]["enabled"] == True:
                     image1 = output.return_array()
                     sleep(0.25)
                     image2 = output.return_array()
@@ -134,16 +134,16 @@ def detect_movement():
                     diff = cv2.absdiff(gray1, gray2)
 
                     # Apply a binary threshold to the difference (you can adjust the threshold value as needed)
-                    _, thresholded_diff = cv2.threshold(diff, settingssettings["notifications"]['video'][curUser.capitalize()]["move_threshold"], 255, cv2.THRESH_BINARY)
+                    _, thresholded_diff = cv2.threshold(diff, settings["notifications"]['video'][curUser.capitalize()]["move_threshold"], 255, cv2.THRESH_BINARY)
 
                     # Count the number of white pixels in the thresholded image
                     white_pixels = np.sum(thresholded_diff == 255)
 
-                    if white_pixels > settingssettings["notifications"]['video'][curUser.capitalize()]["detection_threshold"] :
+                    if white_pixels > settings["notifications"]['video'][curUser.capitalize()]["detection_threshold"] :
                         movement_count += 1
                         print(f"Motion Detected {movement_count} times")
-                        if movement_count == settingssettings["notifications"]['video'][curUser.capitalize()]["movement_count_low"] :
-                            if time() - lastNotification >= settingssettings["notifications"]['video'][curUser.capitalize()]["delaytime_low"]:  # 600 seconds = 10 minutes
+                        if movement_count == settings["notifications"]['video'][curUser.capitalize()]["movement_count_low"] :
+                            if time() - lastNotification >= settings["notifications"]['video'][curUser.capitalize()]["delaytime_low"]:  # 600 seconds = 10 minutes
                                 priority = '3'
                                 title = "Movement Detected"
                                 tags = "warning"
@@ -155,8 +155,8 @@ def detect_movement():
                                 "Tags" : tags,
                                 "Priority" : priority
                                 })
-                        elif movement_count == settingssettings["notifications"]['video'][curUser.capitalize()]["movement_count_high"] :
-                            if time() - lastNotification >= settingssettings["notifications"]['video'][curUser.capitalize()]["delaytime_high"]:  # 600 seconds = 10 minutes
+                        elif movement_count == settings["notifications"]['video'][curUser.capitalize()]["movement_count_high"] :
+                            if time() - lastNotification >= settings["notifications"]['video'][curUser.capitalize()]["delaytime_high"]:  # 600 seconds = 10 minutes
                                 priority = '4'
                                 title = f'Continuous Movement (Over {settings["notifications"]["video"][session["username"].capitalize()]["movement_count_high"]} Seconds!)'
                                 tags = "bangbang"
