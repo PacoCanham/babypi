@@ -44,11 +44,10 @@ export default function AppSh() {
                     volume: dictionary.volume,
                     playstate: dictionary.playstate,
                 });
-                const url = `/getNotificationEnabled/${dictionary.username}`;
             });
-            fetch(url)
-        .then(response => response.json())
-        .then( data => setSettings({notifications:data.both_enabled})) 
+        fetch("/getNotificationEnabled")
+            .then((response) => response.json())
+            .then((data) => setSettings({ notifications: data.both_enabled }));
     };
 
     const getUpdates = () => {
