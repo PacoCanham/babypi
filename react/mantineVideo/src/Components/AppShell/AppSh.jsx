@@ -46,9 +46,6 @@ export default function AppSh() {
                     notifications: dictionary.notifications
                 });
             });
-        fetch("/getNotificationEnabled")
-            .then((response) => response.json())
-            .then((data) => setSettings({notifications: data.both_enabled }));
     };
 
     const getUpdates = () => {
