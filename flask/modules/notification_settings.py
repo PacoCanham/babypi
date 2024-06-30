@@ -1,5 +1,5 @@
 from flask import jsonify, request
-from __main__ import app
+from __main__ import app, login_required
 from functools import wraps
 from flask_session import Session
 
