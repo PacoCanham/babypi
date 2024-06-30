@@ -54,37 +54,37 @@ user_activity_log = {}
 settings = {'camera' : 
 {'UDValue':1750, 'LRValue':1750, 'flipped':False, 'led':False, 
 'volume': 20, 'trackname':'30-Stream-60min.mp3', 'playstate':False}, 
-'notifications':{'video':{Vee: {
-        movThres: 60,
-        movNumLow: 3,
-        movNumHigh: 30,
-        notificationDelay: 600,
-        enabled : True
+'notifications':{'video':{'Vee': {
+        'movThres': 60,
+        'movNumLow': 3,
+        'movNumHigh': 30,
+        'notificationDelay': 600,
+        'enabled' : True
     },
-    Paco: {
-        movThres: 250,
-        movNumLow: 3,
-        movNumHigh: 30,
-        notificationDelay: 600,
-        enabled : True
+    'Paco': {
+        'movThres': 250,
+        'movNumLow': 3,
+        'movNumHigh': 30,
+        'notificationDelay': 600,
+        'enabled' : True
 
     }}, 'audio':{
-        Vee: {
-        delayLow: 600,
-        delayHigh: 1800,
-        volumeLow: 100,
-        volumeHigh: 1000,
-        sampleLength: 3,
-        enabled : True
+        'Vee': {
+        'delayLow': 600,
+        'delayHigh': 1800,
+        'volumeLow': 100,
+        'volumeHigh': 1000,
+        'sampleLength': 3,
+        'enabled' : True
 
     },
-    Paco: {
-        delayLow: 600,
-        delayHigh: 1800,
-        volumeLow: 100,
-        volumeHigh: 1000,
-        sampleLength: 3,
-        enabled : True
+    'Paco': {
+        'delayLow': 600,
+        'delayHigh': 1800,
+        'volumeLow': 100,
+        'volumeHigh': 1000,
+        'sampleLength': 3,
+        'enabled' : True
     }
     }}}
 
