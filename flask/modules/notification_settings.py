@@ -1,5 +1,5 @@
 from flask import jsonify, request
-from __main__ import app, login_required
+from __main__ import app, login_required, settings
 from functools import wraps
 from flask_session import Session
 
@@ -47,7 +47,7 @@ def getVideoConf():
 @login_required
 def applyVideo():
     data = request.json
-    print(data)
+    print(settings)
     return "OK"
 
 @app.route("/applyAudio", methods=["POST"])
