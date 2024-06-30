@@ -157,7 +157,7 @@ def detect_movement():
                     elif movement_count == settings["notifications"]['video'][session['username'].capitalize()]["movement_count_high"] :
                         if time() - lastNotification >= settings["notifications"]['video'][session['username'].capitalize()]["delaytime_high"]:  # 600 seconds = 10 minutes
                             priority = '4'
-                            title = f'Continuous Movement (Over {settings["notifications"]['video'][session['username'].capitalize()]["movement_count_high"]} Seconds!)'
+                            title = f'Continuous Movement (Over {settings["notifications"]["video"][session["username"].capitalize()]["movement_count_high"]} Seconds!)'
                             tags = "bangbang"
                             requests.put("https://192.168.4.182:8181/babycam",
                             data=output.return_bytes().getvalue(),
