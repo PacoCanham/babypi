@@ -1,10 +1,13 @@
 from flask import jsonify, request
-from __main__ import app, login_required, settings, saveconfig, loadconfig
+from __main__ import app, login_required, settings
 from functools import wraps
 from flask_session import Session
 
 
-
+def saveconfig():
+    with open ("../config.json", "w") as config:
+        json.dump(settings, config)
+        
 @app.route("/getAudioConfig")
 @login_required
 def getAudioConf():
