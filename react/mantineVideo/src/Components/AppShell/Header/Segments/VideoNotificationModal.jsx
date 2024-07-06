@@ -119,7 +119,7 @@ export default function VideoNotificationModal(props) {
                     gap="xs"
                 >
                     <SegmentedControl
-                        value={user}
+                        defaultValue={user}
                         size="md"
                         radius="lg"
                         data={["Paco", "Vee"]}
