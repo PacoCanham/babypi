@@ -36,18 +36,24 @@ def toggleNotifications():
 @app.route("/getAudioConfig")
 @login_required
 def getAudioConf():
-    curusername == "Paco"
+    # curusername == "Paco"
+        # curusername == session['username'].capitalize() 
     if session['username'].capitalize() in ["Paco", 'Vee']:
-        curusername == session['username'].capitalize() 
-    return jsonify({"username":curusername, "settings":settings['notifications']['audio']})
+        return jsonify({"username":session['username'].capitalize(), "settings":settings['notifications']['audio']})
+    else:
+        return jsonify({"username":"Paco", "settings":settings['notifications']['video']})
+
 
 @app.route("/getVideoConfig")
 @login_required
 def getVideoConf():
-    curusername == "Paco"
+    # curusername == "Paco"
     if session['username'].capitalize() in ["Paco", 'Vee']:
-        curusername == session['username'].capitalize() 
-    return jsonify({"username":curusername, "settings":settings['notifications']['video']})
+        return jsonify({"username":session['username'].capitalize(), "settings":settings['notifications']['video']})
+    else:
+        return jsonify({"username":"Paco", "settings":settings['notifications']['video']})
+
+        # curusername == session['username'].capitalize() 
 
 @app.route("/applyVideo", methods=["POST"])
 @login_required
