@@ -39,7 +39,6 @@ export default function VideoNotificationModal(props) {
             .then((data) => {
                 setNotificationDict(data.settings);
                 setUser(data.username);
-                console.log(data.username);
             });
     }
 
@@ -120,6 +119,7 @@ export default function VideoNotificationModal(props) {
                     gap="xs"
                 >
                     <SegmentedControl
+                        value={user}
                         size="md"
                         radius="lg"
                         data={["Paco", "Vee"]}

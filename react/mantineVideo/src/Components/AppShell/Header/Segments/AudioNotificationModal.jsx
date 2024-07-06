@@ -113,6 +113,7 @@ export default function AudioNotificationModal(props) {
                     gap="xs"
                 >
                     <SegmentedControl
+                        value={user}
                         size="md"
                         radius="lg"
                         data={["Paco", "Vee"]}
