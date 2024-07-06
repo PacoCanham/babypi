@@ -41,7 +41,7 @@ export default function AudioNotificationModal(props) {
     async function initObjects() {
         await fetch("/getAudioConfig")
             .then((response) => response.json())
-            .then((data) => setNotificationDict(data));
+            .then((data) => {setNotificationDict(data.settings);setUser(data.username)});
     }
 
     useEffect(() => {

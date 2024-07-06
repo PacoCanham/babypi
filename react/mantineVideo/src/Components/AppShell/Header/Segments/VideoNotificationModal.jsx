@@ -36,7 +36,10 @@ export default function VideoNotificationModal(props) {
     async function initObjects() {
         await fetch("/getVideoConfig")
             .then((response) => response.json())
-            .then((data) => setNotificationDict(data));
+            .then((data) => {
+                setNotificationDict(data.settings);
+                setUser(data.username);
+            });
     }
 
     async function applyVideo() {
@@ -78,27 +81,36 @@ export default function VideoNotificationModal(props) {
                 align="stretch"
                 justify="flex-start"
                 gap="xs"
-            >                <Stack
-            h={300}
-            bg="var(--mantine-color-body)"
-            align="center"
-            justify="flex-start"
-            gap="xs"
-        >
-            <Switch size="xl" onLabel="ON" offLabel="OFF" checked={notificationDict[user].enabled} onClick={()=>setNotificationDict({
+            >
+                {" "}
+                <Stack
+                    h={300}
+                    bg="var(--mantine-color-body)"
+                    align="center"
+                    justify="flex-start"
+                    gap="xs"
+                >
+                    <Switch
+                        size="xl"
+                        onLabel="ON"
+                        offLabel="OFF"
+                        checked={notificationDict[user].enabled}
+                        onClick={() =>
+                            setNotificationDict({
                                 [user]: {
                                     delayLow: notificationDict[user].delayHigh,
-                                    delayHigh:
-                                        notificationDict[user].delayHigh,
-                                    volumeLow:
-                                        notificationDict[user].volumeLow,
+                                    delayHigh: notificationDict[user].delayHigh,
+                                    volumeLow: notificationDict[user].volumeLow,
                                     volumeHigh:
                                         notificationDict[user].volumeHigh,
                                     sampleLength:
                                         notificationDict[user].sampleLength,
                                     enabled: !notificationDict[user].enabled,
-                                }})} />
-            </Stack>
+                                },
+                            })
+                        }
+                    />
+                </Stack>
                 <Stack
                     h={300}
                     bg="var(--mantine-color-body)"
