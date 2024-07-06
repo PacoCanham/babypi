@@ -40,7 +40,7 @@ def getAudioConf():
     username == "Paco"
     if session['username'].capitalize() in ["Paco", 'Vee']:
         username == session['username'].capitalize() 
-    return jsonify({"username":username, "settings":settings['notifications']["audio"]})
+    return jsonify({"username":username, "settings":settings['notifications']['audio']})
 
 @app.route("/getVideoConfig")
 @login_required
@@ -48,7 +48,7 @@ def getVideoConf():
     username == "Paco"
     if session['username'].capitalize() in ["Paco", 'Vee']:
         username == session['username'].capitalize() 
-    return jsonify({"username":username, "settings":settings['notifications']["video"]})
+    return jsonify({"username":username, "settings":settings['notifications']['video']})
 
 @app.route("/applyVideo", methods=["POST"])
 @login_required

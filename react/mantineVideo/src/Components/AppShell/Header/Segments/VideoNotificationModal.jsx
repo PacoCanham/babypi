@@ -39,6 +39,7 @@ export default function VideoNotificationModal(props) {
             .then((data) => {
                 setNotificationDict(data.settings);
                 setUser(data.username);
+                console.log(data.username);
             });
     }
 
