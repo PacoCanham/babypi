@@ -1,0 +1,18 @@
+[Unit]
+Description=BabyCam Audio Notification Service
+After=network.target
+
+[Service]
+Type=simple
+User=paco
+WorkingDirectory=/home/paco/babypi/flask
+ExecStart=/home/paco/.babycamvenv/bin/python3 -u /home/paco/babypi/flask/audiontfy.py
+Restart=always
+RemainAfterExit=true
+Environment="PATH=/home/paco/.babycamvenv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=audiontfy
+
+[Install]
+WantedBy=multi-user.target

@@ -11,6 +11,8 @@ import {
     IconUserPlus,
     IconDeviceCctv,
     IconMicrophone2,
+    IconWifi,
+    IconCamera,
   } from '@tabler/icons-react';
 import VideoNotificationModal from "./VideoNotificationModal";
 import AudioNotificationModal from "./AudioNotificationModal";
@@ -19,12 +21,18 @@ import AudioNotificationModal from "./AudioNotificationModal";
   export default function HeaderMenu(props){    
     const [notificationsModal, {open, close}] = useDisclosure(false);
     const [isVideo, changeVideo] = useDisclosure(true)
+    const [hotspotEnabled, setHotspotEnabled] = useDisclosure(false);
     const isMobile = useMediaQuery('(max-width: 50em)');
 
-    function handleAccount(e){
+    function handleURL(e){
         e.preventDefault()
         const url = e.currentTarget.id
-        window.location.assign(url)
+        if (url == "/hotspot"){
+            setHotspotEnabled.toggle();
+            fetch(url);
+        } else {
+            window.location.assign(url)
+        }
     }
 
     function closeVideo(){
@@ -58,6 +66,9 @@ import AudioNotificationModal from "./AudioNotificationModal";
             <Menu.Item onClick={()=>{props.setDisplayed({player:!props.displayed.player})}} leftSection={<IconPlaylist style={{ width: rem(14), height: rem(14) }} />}>
             {(props.displayed.player)?'Hide':'Show'} Music Player
             </Menu.Item>
+            <Menu.Item id="/restart_cam"  onClick={()=>{fetch("/restart_cam")}} leftSection={<IconCamera style={{ width: rem(14), height: rem(14) }} />}>
+            Restart Camera
+            </Menu.Item>
             <Menu.Divider />
 
             <Menu.Label>Notification Settings</Menu.Label>
@@ -70,11 +81,15 @@ import AudioNotificationModal from "./AudioNotificationModal";
             <Menu.Divider />
 
             <Menu.Label>Account Settings</Menu.Label>
-            <Menu.Item id="/logout" onClick={handleAccount} color='red' leftSection={<IconLogout style={{ width: rem(14), height: rem(14) }} />}>
+            <Menu.Item id="/logout" onClick={handleURL} color='red' leftSection={<IconLogout style={{ width: rem(14), height: rem(14) }} />}>
             Logout
             </Menu.Item>
-            <Menu.Item id="/register" onClick={handleAccount} color="green" leftSection={<IconUserPlus style={{ width: rem(14), height: rem(14) }} />}>
+            <Menu.Item id="/register" onClick={handleURL} color="green" leftSection={<IconUserPlus style={{ width: rem(14), height: rem(14) }} />}>
             Create New Account
+            </Menu.Item>
+            <Menu.Label>Network Settings</Menu.Label>
+            <Menu.Item id="/hotspot" onClick={handleURL} leftSection={<IconWifi style={{ width: rem(14), height: rem(14) }} />}>
+            Switch to {hotspotEnabled ? 'hotspot' : 'Wifi'}
             </Menu.Item>
         </Menu.Dropdown>
         </Menu>

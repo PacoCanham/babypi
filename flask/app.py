@@ -405,11 +405,17 @@ def serve_hls():
 @app.route('/restart_cam')
 @login_required
 def restart_cam():
-    picam.stop()
-    sleep(0.5)
-    # picam.start_encoder(encoder, FileOutput(output))
-    # sleep(0.5)
-    picam.start()
+    global config
+    try:
+        picam.stop()
+        config["transform"] = Transform(vflip=flipped)
+        picam.configure(config)
+        picam.start()
+    except:
+        picam.stop()
+        picam.configure(config)
+        picam.start()
+        
     return jsonify(message="Camera Restarted")
 
 
@@ -474,7 +480,12 @@ def setVolume(newVolume):
     saveconfig()
     return f"volume now : {newVolume}", 200
 
+@login_required
+@app.route('/hotspot')
+def hotspot():
+    pass
+
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=443, debug=False, threaded=True,ssl_context=('pacocanham.ddns.net.crt', 'pacocanham.ddns.net.key'))
+    app.run(host='0.0.0.0', port=443, debug=False, threaded=True, ssl_context=('pacocanham.ddns.net.crt', 'pacocanham.ddns.net.key'))

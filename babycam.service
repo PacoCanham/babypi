@@ -1,0 +1,20 @@
+[Unit]
+Description=Babycam Service
+After=network.target
+
+[Service]
+WorkingDirectory=/home/paco/babypi/flask
+ExecStart=/home/paco/.babycamvenv/bin/python3 -u /home/paco/babypi/flask/app.py
+Environment="PATH=/home/paco/.babycamvenv/bin:/usr/local/sbin:/usr/local/bin:/u>
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=babycam
+Restart=always
+RestartSec=0.5
+User=root
+Group=root
+
+
+[Install]
+WantedBy=multi-user.target
+

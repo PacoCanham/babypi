@@ -1,0 +1,9 @@
+[Unit]
+Description=Restart Babycam Service
+ 
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/sudo /usr/bin/systemctl restart babycam.service
+
+[Install]
+WantedBy=multi-user.target

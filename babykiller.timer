@@ -1,0 +1,9 @@
+[Unit]
+Description=Restart babycam service every 30 minutes
+
+[Timer]
+OnBootSec=3h
+Unit=babykiller.service
+
+[Install]
+WantedBy=timers.target
