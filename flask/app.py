@@ -1,4 +1,4 @@
-#!../../.babycamvenv/bin/python3
+#!../../.venv/bin/python3
 from flask import Flask, redirect, render_template, session, request, jsonify, Response, stream_with_context, send_from_directory
 from flask_session import Session
 from flask_cors import CORS, cross_origin
